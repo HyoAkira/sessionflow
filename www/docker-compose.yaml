@@ -1,0 +1,25 @@
+services:
+#   web:
+#     image: nginx:latest
+#     ports:
+#       - "8088:80"
+#     volumes:
+#       - ./web:/usr/share/nginx/html
+#       - ../../trackerCode/bundler/index.js:/usr/share/nginx/html/script.js
+#     networks:
+#       - webnet
+
+
+  web:
+    image: nginx:latest
+    ports:
+      - "8088:80"
+    networks:
+      - webnet
+    volumes:
+      - ./web:/usr/share/nginx/html
+      # - ../../trackerCode/dist/bundle.js:/usr/share/nginx/html/
+
+networks:
+  webnet:
+    driver: bridge

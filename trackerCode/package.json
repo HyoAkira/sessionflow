@@ -1,0 +1,21 @@
+{
+  "name": "trackerCode",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "bundle": "node ./bundler/index.js",
+    "tasks": "zx ./script.mjs",
+    "serve": "pnpm run bundle &&pnpm run tasks"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.11.0",
+  "dependencies": {
+    "esbuild": "^0.25.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.1"
+  }
+}
