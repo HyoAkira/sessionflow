@@ -109,7 +109,7 @@ class Tracker extends fundementalEvents {
       if (localSession) {
         const parsedSession: UserData = JSON.parse(localSession);
 
-        if (parsedSession.sessionDuration > 1000 * 60 * 60) {
+        if (parsedSession.sessionDuration > 3600000) {
           localStorage.removeItem("userData");
           this.userData = {
             sessionID: crypto.randomUUID(),

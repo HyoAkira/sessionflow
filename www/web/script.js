@@ -97,7 +97,7 @@ var Tracker = class extends fundementalEvents {
       const localSession = localStorage.getItem("userData");
       if (localSession) {
         const parsedSession = JSON.parse(localSession);
-        if (parsedSession.sessionDuration > 1e3 * 60 * 60) {
+        if (parsedSession.sessionDuration > 36e5) {
           localStorage.removeItem("userData");
           this.userData = {
             sessionID: crypto.randomUUID(),
@@ -147,7 +147,6 @@ var Tracker = class extends fundementalEvents {
     }).catch((error) => {
       console.error("Error saving data to server:", error);
     });
-    return this;
   }
 };
 var tracker_default = Tracker;
