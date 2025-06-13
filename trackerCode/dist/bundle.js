@@ -6,151 +6,6 @@ var __export = (target, all) => {
 };
 var __publicField = (obj, key, value2) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value2);
 
-// tracker.ts
-var fundementalEvents = class {
-  constructor() {
-    __publicField(this, "userData");
-  }
-  trackClick() {
-    document.addEventListener("click", (event) => {
-      const { clientX: x, clientY: y } = event;
-      const time = Date.now();
-      this.userData.clicks.push({ x, y, time });
-    });
-    return this;
-  }
-  trackScroll() {
-    document.addEventListener("scroll", () => {
-      const { scrollX: x, scrollY: y } = window;
-      const time = Date.now();
-      this.userData.scrolls.push({ x, y, time });
-    });
-    return this;
-  }
-  trackFocusLoss() {
-    window.addEventListener("blur", () => {
-      this.userData.focusLossCount++;
-    });
-    return this;
-  }
-  getDeviceType() {
-    const width = window.innerWidth;
-    if (width < 768) {
-      this.userData.deviceType = "mobile";
-    } else if (width < 1024) {
-      this.userData.deviceType = "tablet";
-    } else {
-      this.userData.deviceType = "desktop";
-    }
-    return this;
-  }
-  trackSessionDuration() {
-    const startTime = this.userData.sessionStart;
-    setInterval(() => {
-      const currentTime = Date.now();
-      this.userData.sessionDuration = currentTime - startTime;
-    }, 1e3);
-    return this;
-  }
-};
-var Tracker = class extends fundementalEvents {
-  constructor(url2) {
-    super();
-    __publicField(this, "userData");
-    __publicField(this, "serverConf", {
-      url: ""
-    });
-    const localData = JSON.parse(
-      localStorage.getItem("userData") || "{}"
-    );
-    this.serverConf.url = url2 || "http://localhost:3000/api/";
-    this.userData = {
-      sessionID: localData.sessionID || crypto.randomUUID(),
-      clicks: localData.clicks || [],
-      scrolls: localData.scrolls || [],
-      focusLossCount: localData.focusLossCount || 0,
-      sessionStart: localData.sessionStart || Date.now(),
-      sessionDuration: localData.sessionDuration || 0,
-      deviceType: localData.deviceType || void 0
-    };
-  }
-  //   workerSession() {
-  //     const worker = new Worker(new URL("./worker.ts", import.meta.url), {
-  //       type: "module",
-  //     });
-  //     worker.postMessage({ type: "start", startTime: Date.now() });
-  //     worker.onmessage = (e) => {
-  //       if (e.data.type === "duration") {
-  //         const seconds = Math.floor(e.data.data / 1000);
-  //         this.userData.sessionDuration = seconds;
-  //       }
-  //     };
-  //     // sayfa kapanırken worker'ı durdur
-  //     window.addEventListener("beforeunload", () => {
-  //       worker.postMessage({ type: "stop" });
-  //       worker.terminate();
-  //     });
-  //     return this;
-  //   }
-  resetSession() {
-    window.addEventListener("load", () => {
-      const localSession = localStorage.getItem("userData");
-      if (localSession) {
-        const parsedSession = JSON.parse(localSession);
-        if (parsedSession.sessionDuration > 36e5) {
-          localStorage.removeItem("userData");
-          this.userData = {
-            sessionID: crypto.randomUUID(),
-            clicks: [],
-            scrolls: [],
-            focusLossCount: 0,
-            sessionStart: Date.now(),
-            sessionDuration: 0,
-            deviceType: void 0
-          };
-        }
-      }
-    });
-    return this;
-  }
-  fastStart() {
-    this.resetSession();
-    this.trackScroll();
-    this.trackClick();
-    this.trackSessionDuration();
-    this.trackFocusLoss();
-    this.getDeviceType();
-    return this;
-  }
-  startTracking() {
-    this.saveToLocalStorage();
-    setInterval(() => {
-      console.log("Tracking user data:", this.userData);
-      this.saveToServer();
-    }, 1500);
-    return this;
-  }
-  saveToLocalStorage() {
-    window.addEventListener("beforeunload", () => {
-      localStorage.setItem("userData", JSON.stringify(this.userData));
-    });
-  }
-  saveToServer() {
-    fetch(`${this.serverConf.url}userclientdata`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ clientData: this.userData })
-    }).then((response) => response.json()).then((data) => {
-      console.log("Server response:", data);
-    }).catch((error) => {
-      console.error("Error saving data to server:", error);
-    });
-  }
-};
-var tracker_default = Tracker;
-
 // node_modules/.pnpm/engine.io-parser@5.2.3/node_modules/engine.io-parser/build/esm/commons.js
 var PACKET_TYPES = /* @__PURE__ */ Object.create(null);
 PACKET_TYPES["open"] = "0";
@@ -3229,11 +3084,11 @@ var Manager = class extends Emitter {
     if (~this._readyState.indexOf("open"))
       return this;
     this.engine = new Socket(this.uri, this.opts);
-    const socket2 = this.engine;
+    const socket = this.engine;
     const self2 = this;
     this._readyState = "opening";
     this.skipReconnect = false;
-    const openSubDestroy = on(socket2, "open", function() {
+    const openSubDestroy = on(socket, "open", function() {
       self2.onopen();
       fn && fn();
     });
@@ -3247,13 +3102,13 @@ var Manager = class extends Emitter {
         this.maybeReconnectOnOpen();
       }
     };
-    const errorSub = on(socket2, "error", onError);
+    const errorSub = on(socket, "error", onError);
     if (false !== this._timeout) {
       const timeout = this._timeout;
       const timer = this.setTimeoutFn(() => {
         openSubDestroy();
         onError(new Error("timeout"));
-        socket2.close();
+        socket.close();
       }, timeout);
       if (this.opts.autoUnref) {
         timer.unref();
@@ -3284,12 +3139,12 @@ var Manager = class extends Emitter {
     this.cleanup();
     this._readyState = "open";
     this.emitReserved("open");
-    const socket2 = this.engine;
+    const socket = this.engine;
     this.subs.push(
-      on(socket2, "ping", this.onping.bind(this)),
-      on(socket2, "data", this.ondata.bind(this)),
-      on(socket2, "error", this.onerror.bind(this)),
-      on(socket2, "close", this.onclose.bind(this)),
+      on(socket, "ping", this.onping.bind(this)),
+      on(socket, "data", this.ondata.bind(this)),
+      on(socket, "error", this.onerror.bind(this)),
+      on(socket, "close", this.onclose.bind(this)),
       // @ts-ignore
       on(this.decoder, "decoded", this.ondecoded.bind(this))
     );
@@ -3339,14 +3194,14 @@ var Manager = class extends Emitter {
    * @public
    */
   socket(nsp, opts) {
-    let socket2 = this.nsps[nsp];
-    if (!socket2) {
-      socket2 = new Socket2(this, nsp, opts);
-      this.nsps[nsp] = socket2;
-    } else if (this._autoConnect && !socket2.active) {
-      socket2.connect();
+    let socket = this.nsps[nsp];
+    if (!socket) {
+      socket = new Socket2(this, nsp, opts);
+      this.nsps[nsp] = socket;
+    } else if (this._autoConnect && !socket.active) {
+      socket.connect();
     }
-    return socket2;
+    return socket;
   }
   /**
    * Called upon a socket close.
@@ -3354,11 +3209,11 @@ var Manager = class extends Emitter {
    * @param socket
    * @private
    */
-  _destroy(socket2) {
+  _destroy(socket) {
     const nsps = Object.keys(this.nsps);
     for (const nsp of nsps) {
-      const socket3 = this.nsps[nsp];
-      if (socket3.active) {
+      const socket2 = this.nsps[nsp];
+      if (socket2.active) {
         return;
       }
     }
@@ -3512,10 +3367,213 @@ Object.assign(lookup2, {
   connect: lookup2
 });
 
+// tracker.ts
+var fundementalEvents = class {
+  constructor() {
+    __publicField(this, "userData");
+  }
+  trackClick() {
+    document.addEventListener("click", (event) => {
+      const { clientX: x, clientY: y } = event;
+      const time = Date.now();
+      this.userData.clicks.push({ x, y, time });
+    });
+    return this;
+  }
+  trackScroll() {
+    document.addEventListener("scroll", () => {
+      const { scrollX: x, scrollY: y } = window;
+      const time = Date.now();
+      this.userData.scrolls.push({ x, y, time });
+    });
+    return this;
+  }
+  trackFocusLoss() {
+    window.addEventListener("blur", () => {
+      this.userData.focusLossCount++;
+    });
+    return this;
+  }
+  getDeviceType() {
+    const width = window.innerWidth;
+    if (width < 768) {
+      this.userData.deviceType = "mobile";
+    } else if (width < 1024) {
+      this.userData.deviceType = "tablet";
+    } else {
+      this.userData.deviceType = "desktop";
+    }
+    return this;
+  }
+  trackSessionDuration() {
+    const startTime = this.userData.sessionStart;
+    setInterval(() => {
+      const currentTime = Date.now();
+      this.userData.sessionDuration = currentTime - startTime;
+    }, 1e3);
+    return this;
+  }
+};
+var Tracker = class extends fundementalEvents {
+  constructor(url2) {
+    super();
+    __publicField(this, "socket", lookup2("http://localhost:3000"));
+    __publicField(this, "userData");
+    __publicField(this, "serverConf", {
+      url: ""
+    });
+    const localData = JSON.parse(
+      localStorage.getItem("userData") || "{}"
+    );
+    this.serverConf.url = url2 || "http://localhost:3000/api/";
+    this.userData = {
+      sessionID: localData.sessionID || crypto.randomUUID(),
+      clicks: localData.clicks || [],
+      scrolls: localData.scrolls || [],
+      focusLossCount: localData.focusLossCount || 0,
+      sessionStart: localData.sessionStart || Date.now(),
+      sessionDuration: localData.sessionDuration || 0,
+      deviceType: localData.deviceType || void 0
+    };
+    this.socketConnectionHandler();
+  }
+  socketConnectionHandler() {
+    this.socket.on("connect", () => {
+      console.log("Socket connected:", this.socket.id);
+    });
+  }
+  //   workerSession() {
+  //     const worker = new Worker(new URL("./worker.ts", import.meta.url), {
+  //       type: "module",
+  //     });
+  //     worker.postMessage({ type: "start", startTime: Date.now() });
+  //     worker.onmessage = (e) => {
+  //       if (e.data.type === "duration") {
+  //         const seconds = Math.floor(e.data.data / 1000);
+  //         this.userData.sessionDuration = seconds;
+  //       }
+  //     };
+  //     // sayfa kapanırken worker'ı durdur
+  //     window.addEventListener("beforeunload", () => {
+  //       worker.postMessage({ type: "stop" });
+  //       worker.terminate();
+  //     });
+  //     return this;
+  //   }
+  resetSession() {
+    window.addEventListener("load", () => {
+      const localSession = localStorage.getItem("userData");
+      if (localSession) {
+        const parsedSession = JSON.parse(localSession);
+        if (parsedSession.sessionDuration > 36e5) {
+          localStorage.removeItem("userData");
+          this.userData = {
+            sessionID: crypto.randomUUID(),
+            clicks: [],
+            scrolls: [],
+            focusLossCount: 0,
+            sessionStart: Date.now(),
+            sessionDuration: 0,
+            deviceType: void 0
+          };
+        }
+      }
+    });
+    return this;
+  }
+  fastStart() {
+    this.resetSession();
+    this.trackScroll();
+    this.trackClick();
+    this.trackSessionDuration();
+    this.trackFocusLoss();
+    this.getDeviceType();
+    this.setPageEvents();
+    return this;
+  }
+  startTracking() {
+    this.saveToLocalStorage();
+    setInterval(() => {
+      this.saveToServer();
+    }, 1500);
+    return this;
+  }
+  saveToLocalStorage() {
+    window.addEventListener("beforeunload", () => {
+      localStorage.setItem("userData", JSON.stringify(this.userData));
+    });
+  }
+  saveToServer() {
+    const requestPromise = new Promise((resolve, reject) => {
+      this.socket.emit("userData", this.userData, (cb) => {
+        if (cb.error) {
+          reject(cb.message);
+        } else {
+          resolve(cb.message);
+        }
+      });
+    });
+    requestPromise.then((data) => {
+      console.log("Server response:", data);
+    }).catch((error) => {
+      console.error("Error saving data to server:", error);
+    });
+  }
+  setPageEvents() {
+    PageTrackerService.setPageEvents();
+    return this;
+  }
+};
+var tracker_default = Tracker;
+var _PageTrackerService = class _PageTrackerService {
+  PageTrackerService() {
+  }
+  static getInstance() {
+    if (!_PageTrackerService.instance) {
+      _PageTrackerService.instance = new _PageTrackerService();
+    }
+    return _PageTrackerService.instance;
+  }
+  static setPageEvents() {
+    const page = {
+      title: document.title,
+      url: window.location.href,
+      date: Date.now(),
+      contents: [],
+      categories: [],
+      pageDuration: 0
+    };
+    const cb = (entries) => {
+      entries.forEach((entry) => {
+        let startTime;
+        let endTime;
+        const el = entry.target;
+        const content = el.getAttribute("data-ckcontent") || null;
+        const category = el.getAttribute("data-ckcategory") || null;
+        if (entry.isIntersecting) {
+          startTime = entry.time;
+        }
+        if (!entry.isIntersecting) {
+          endTime = entry.time;
+          const visibleDuration = endTime - startTime;
+          console.log("time", visibleDuration);
+        }
+      });
+    };
+    const observer = new IntersectionObserver(cb, {
+      threshold: 0.3
+    });
+    const targetElements = document.querySelectorAll(
+      "[data-ckcontent],[data-ckcategory]"
+    );
+    targetElements.forEach((element) => {
+      observer.observe(element);
+    });
+  }
+};
+__publicField(_PageTrackerService, "instance");
+var PageTrackerService = _PageTrackerService;
+
 // main.ts
 var tracker = new tracker_default().fastStart().startTracking();
-var socket = lookup2("http://localhost:3000");
-socket.on("connect", () => {
-  console.log("Connected to server with ID:", socket.id);
-});
 //# sourceMappingURL=bundle.js.map

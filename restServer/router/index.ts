@@ -4,21 +4,21 @@ import DBService from "../services/db";
 import SocketService from "../services/socket";
 
 const router = Router();
+// -- socket yapisina gecti
+// router.post("/userclientdata", userclientdataMiddleware, async (req, res) => {
+//   // @ts-ignore
+//   const clientData = res.locals.clientData;
 
-router.post("/userclientdata", userclientdataMiddleware, async (req, res) => {
-  // @ts-ignore
-  const clientData = res.locals.clientData;
-
-  const clientDataServiceResult = await DBService.sendClientData(clientData);
-  if (clientDataServiceResult.error) {
-    res.status(500).json({
-      ...clientDataServiceResult,
-    });
-  }
-  res.status(200).json({
-    ...clientDataServiceResult,
-  });
-});
+//   const clientDataServiceResult = await DBService.sendClientData(clientData);
+//   if (clientDataServiceResult.error) {
+//     res.status(500).json({
+//       ...clientDataServiceResult,
+//     });
+//   }
+//   res.status(200).json({
+//     ...clientDataServiceResult,
+//   });
+// });
 
 router.get("/liveusercount", (req, res) => {
   const liveUserCount = SocketService.liveUserCount;

@@ -1,3 +1,5 @@
+import io from "socket.io-client";
+
 type UserData = {
   sessionID: string;
   clicks: { x: number; y: number; time: number }[];
@@ -60,6 +62,7 @@ class fundementalEvents {
 }
 
 class Tracker extends fundementalEvents {
+  private socket = io("http://localhost:3000");
   protected userData: UserData;
   private serverConf = {
     url: "",
@@ -79,8 +82,13 @@ class Tracker extends fundementalEvents {
       sessionDuration: localData.sessionDuration || 0,
       deviceType: localData.deviceType || undefined,
     };
+    this.socketConnectionHandler();
   }
-
+  socketConnectionHandler() {
+    this.socket.on("connect", () => {
+      console.log("Socket connected:", this.socket.id);
+    });
+  }
   //   workerSession() {
   //     const worker = new Worker(new URL("./worker.ts", import.meta.url), {
   //       type: "module",
@@ -133,12 +141,13 @@ class Tracker extends fundementalEvents {
     this.trackSessionDuration();
     this.trackFocusLoss();
     this.getDeviceType();
+    this.setPageEvents();
     return this;
   }
   startTracking() {
     this.saveToLocalStorage();
     setInterval(() => {
-      console.log("Tracking user data:", this.userData);
+      // console.log("Tracking user data:", this.userData);
       this.saveToServer();
     }, 1500);
 
@@ -152,20 +161,102 @@ class Tracker extends fundementalEvents {
   }
 
   saveToServer() {
-    fetch(`${this.serverConf.url}userclientdata`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ clientData: this.userData }),
-    })
-      .then((response) => response.json())
+    //payload büyümesini engellemek için socket ile gondermeye gecirdim
+    const requestPromise = new Promise((resolve, reject) => {
+      this.socket.emit("userData", this.userData, (cb) => {
+        if (cb.error) {
+          reject(cb.message);
+        } else {
+          resolve(cb.message);
+        }
+      });
+    });
+    requestPromise
       .then((data) => {
         console.log("Server response:", data);
       })
       .catch((error) => {
         console.error("Error saving data to server:", error);
       });
+    // fetch(`${this.serverConf.url}userclientdata`, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({ clientData: this.userData }),
+    // })
+    //   .then((response) => response.json())
+    //   .then((data) => {
+    //     console.log("Server response:", data);
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error saving data to server:", error);
+    //   });
+  }
+
+  setPageEvents() {
+    PageTrackerService.setPageEvents();
+    return this;
   }
 }
 export default Tracker;
+
+type IPage = {
+  title: string;
+  url: string;
+  date: number;
+  contents: { content; category; visibleDuration }[];
+  categories: string[];
+  pageDuration: number;
+};
+
+class PageTrackerService {
+  private PageTrackerService() {}
+  private static instance: PageTrackerService;
+  public static getInstance(): PageTrackerService {
+    if (!PageTrackerService.instance) {
+      PageTrackerService.instance = new PageTrackerService();
+    }
+    return PageTrackerService.instance;
+  }
+
+  static setPageEvents() {
+    const page: IPage = {
+      title: document.title,
+      url: window.location.href,
+      date: Date.now(),
+      contents: [],
+      categories: [],
+      pageDuration: 0,
+    };
+
+    const cb = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        let startTime;
+        let endTime;
+        const el = entry.target as HTMLElement;
+        const content = el.getAttribute("data-ckcontent") || null;
+        const category = el.getAttribute("data-ckcategory") || null;
+        if (entry.isIntersecting) {
+          startTime = entry.time;
+        }
+        if (!entry.isIntersecting) {
+          endTime = entry.time;
+          const visibleDuration = endTime - startTime;
+          console.log("time", visibleDuration);
+        }
+      });
+    };
+    const observer = new IntersectionObserver(cb, {
+      threshold: 0.3,
+    });
+
+    // ckcontent ve ckcategory içeren tüm elementleri al
+    const targetElements = document.querySelectorAll(
+      "[data-ckcontent],[data-ckcategory]"
+    );
+    targetElements.forEach((element) => {
+      observer.observe(element);
+    });
+  }
+}

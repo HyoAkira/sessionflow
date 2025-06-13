@@ -1,5 +1,6 @@
 // SocketService.ts
 import { Server, Socket } from "socket.io";
+import DBService from "./db";
 
 class SocketService {
   private static instance: SocketService;
@@ -41,6 +42,17 @@ class SocketService {
         this.liveUserCount--;
         console.info(`Disconnected: ${socket.id}`);
         this.io.emit("liveUserCount", this.liveUserCount);
+      });
+
+      socket.on("userData", async (data, callback) => {
+        if (!data || typeof data !== "object") {
+          return callback({ error: true, message: "Invalid data format" });
+        }
+        const req = await DBService.sendClientData(data);
+        callback({
+          error: req.error,
+          message: req.message,
+        });
       });
     });
   }
