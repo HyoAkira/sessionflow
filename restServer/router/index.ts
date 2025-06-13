@@ -19,7 +19,6 @@ router.post("/userclientdata", userclientdataMiddleware, async (req, res) => {
     ...clientDataServiceResult,
   });
 });
-export default router;
 
 router.get("/liveusercount", (req, res) => {
   const liveUserCount = SocketService.liveUserCount;
@@ -29,3 +28,18 @@ router.get("/liveusercount", (req, res) => {
     data: { liveUserCount },
   });
 });
+
+router.get("/visitreports", async (req, res) => {
+  const visitReports = await DBService.getAllSessions();
+  if (visitReports.error) {
+    res.status(500).json({
+      ...visitReports,
+    });
+  } else {
+    res.status(200).json({
+      ...visitReports,
+    });
+  }
+});
+
+export default router;

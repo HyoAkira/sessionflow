@@ -23,4 +23,22 @@ export default class DBService {
       };
     }
   }
+
+  static async getAllSessions() {
+    try {
+      const sessions = await Session.find({});
+      return {
+        message: "Sessions retrieved successfully",
+        data: sessions,
+        error: false,
+      };
+    } catch (error) {
+      console.error("Error retrieving sessions:", error);
+      return {
+        message: "Failed to retrieve sessions",
+        data: [],
+        error: true,
+      };
+    }
+  }
 }
