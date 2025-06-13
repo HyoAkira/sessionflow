@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: bitnami/mongodb:latest
+    container_name: restserver_db
+    environment:
+      - MONGODB_ROOT_USER=admin
+      - MONGODB_ROOT_PASSWORD=admin123
+      - MONGODB_DATABASE=restserver
+      - MONGODB_USERNAME=user
+      - MONGODB_PASSWORD=katana
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./db_data:/bitnami/mongodb
+
+volumes:
+  db_data:

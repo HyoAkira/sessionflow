@@ -1,1 +1,3 @@
-node_modules/
+restServer/node_modules
+restServer/db_data
+trackerCode/node_modules
