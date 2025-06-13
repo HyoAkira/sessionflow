@@ -1,3 +1,4 @@
+import { start } from "repl";
 import io from "socket.io-client";
 
 type UserData = {
@@ -23,11 +24,11 @@ class fundementalEvents {
   }
 
   trackScroll() {
-    // document.addEventListener("scroll", () => {
-    //   const { scrollX: x, scrollY: y } = window;
-    //   const time = Date.now();
-    //   this.userData.scrolls.push({ x, y, time });
-    // });
+    document.addEventListener("scroll", () => {
+      const { scrollX: x, scrollY: y } = window;
+      const time = Date.now();
+      this.userData.scrolls.push({ x, y, time });
+    });
     return this;
   }
 
@@ -136,7 +137,7 @@ class Tracker extends fundementalEvents {
 
   fastStart() {
     this.resetSession();
-    this.trackScroll();
+    // this.trackScroll();
     this.trackClick();
     this.trackSessionDuration();
     this.trackFocusLoss();
@@ -149,6 +150,7 @@ class Tracker extends fundementalEvents {
     setInterval(() => {
       // console.log("Tracking user data:", this.userData);
       this.saveToServer();
+      this.savePageDataToServer();
     }, 1500);
 
     return this;
@@ -198,6 +200,20 @@ class Tracker extends fundementalEvents {
     PageTrackerService.setPageEvents();
     return this;
   }
+  savePageDataToServer() {
+    const pageData = PageTrackerService.PageData;
+    pageData.sessionID = this.userData.sessionID;
+    if (!pageData) {
+      return;
+    }
+    this.socket.emit("pageData", pageData, (cb) => {
+      if (cb.error) {
+        console.error("Error saving page data to server:", cb.message);
+      } else {
+        console.log("Page data saved successfully:", cb.message);
+      }
+    });
+  }
 }
 export default Tracker;
 
@@ -205,12 +221,14 @@ type IPage = {
   title: string;
   url: string;
   date: number;
-  contents: { content; category; visibleDuration }[];
+  contents: string[];
+  records: { content; category; visibleDuration }[];
   categories: string[];
   pageDuration: number;
 };
 
 class PageTrackerService {
+  public static PageData;
   private PageTrackerService() {}
   private static instance: PageTrackerService;
   public static getInstance(): PageTrackerService {
@@ -221,6 +239,7 @@ class PageTrackerService {
   }
 
   static setPageEvents() {
+    const pageTimer = Date.now();
     const page: IPage = {
       title: document.title,
       url: window.location.href,
@@ -228,22 +247,42 @@ class PageTrackerService {
       contents: [],
       categories: [],
       pageDuration: 0,
+      records: [],
     };
 
+    const records = new Map<
+      HTMLElement,
+      {
+        startTime: number | null;
+        totalVisibleDuration: number;
+        content: string | null;
+        category: string | null;
+      }
+    >();
     const cb = (entries: IntersectionObserverEntry[]) => {
       entries.forEach((entry) => {
-        let startTime;
-        let endTime;
         const el = entry.target as HTMLElement;
         const content = el.getAttribute("data-ckcontent") || null;
         const category = el.getAttribute("data-ckcategory") || null;
+        if (!records.has(el)) {
+          records.set(el, {
+            startTime: null,
+            totalVisibleDuration: 0,
+            content,
+            category,
+          });
+        }
+        const record = records.get(el)!;
         if (entry.isIntersecting) {
-          startTime = entry.time;
+          // Başlangıç zamanını kaydet
+          if (record.startTime === null) {
+            record.startTime = entry.time;
+          }
         }
         if (!entry.isIntersecting) {
-          endTime = entry.time;
-          const visibleDuration = endTime - startTime;
-          console.log("time", visibleDuration);
+          if (!record.startTime) return;
+          record.totalVisibleDuration += entry.time - record.startTime;
+          record.startTime = 0;
         }
       });
     };
@@ -257,6 +296,35 @@ class PageTrackerService {
     );
     targetElements.forEach((element) => {
       observer.observe(element);
+    });
+
+    const finalize = () => {
+      const currentTime = Date.now();
+      page.pageDuration = currentTime - pageTimer;
+      records.forEach((record, element) => {
+        if (record.totalVisibleDuration > 0) {
+          if (record.category && !page.categories.includes(record.category)) {
+            page.categories.push(record.category);
+          }
+          if (record.content && !page.contents.includes(record.content)) {
+            page.contents.push(record.content);
+          }
+          page.records.push({
+            content: record.content,
+            category: record.category,
+            visibleDuration: record.totalVisibleDuration,
+          });
+        }
+      });
+      PageTrackerService.PageData = page;
+    };
+
+    setInterval(() => {
+      finalize();
+    }, 1000);
+
+    window.addEventListener("beforeunload", () => {
+      finalize();
     });
   }
 }

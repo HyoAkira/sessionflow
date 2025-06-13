@@ -3483,7 +3483,6 @@ var Tracker = class extends fundementalEvents {
   }
   fastStart() {
     this.resetSession();
-    this.trackScroll();
     this.trackClick();
     this.trackSessionDuration();
     this.trackFocusLoss();
@@ -3495,6 +3494,7 @@ var Tracker = class extends fundementalEvents {
     this.saveToLocalStorage();
     setInterval(() => {
       this.saveToServer();
+      this.savePageDataToServer();
     }, 1500);
     return this;
   }
@@ -3523,6 +3523,20 @@ var Tracker = class extends fundementalEvents {
     PageTrackerService.setPageEvents();
     return this;
   }
+  savePageDataToServer() {
+    const pageData = PageTrackerService.PageData;
+    pageData.sessionID = this.userData.sessionID;
+    if (!pageData) {
+      return;
+    }
+    this.socket.emit("pageData", pageData, (cb) => {
+      if (cb.error) {
+        console.error("Error saving page data to server:", cb.message);
+      } else {
+        console.log("Page data saved successfully:", cb.message);
+      }
+    });
+  }
 };
 var tracker_default = Tracker;
 var _PageTrackerService = class _PageTrackerService {
@@ -3535,28 +3549,40 @@ var _PageTrackerService = class _PageTrackerService {
     return _PageTrackerService.instance;
   }
   static setPageEvents() {
+    const pageTimer = Date.now();
     const page = {
       title: document.title,
       url: window.location.href,
       date: Date.now(),
       contents: [],
       categories: [],
-      pageDuration: 0
+      pageDuration: 0,
+      records: []
     };
+    const records = /* @__PURE__ */ new Map();
     const cb = (entries) => {
       entries.forEach((entry) => {
-        let startTime;
-        let endTime;
         const el = entry.target;
         const content = el.getAttribute("data-ckcontent") || null;
         const category = el.getAttribute("data-ckcategory") || null;
+        if (!records.has(el)) {
+          records.set(el, {
+            startTime: null,
+            totalVisibleDuration: 0,
+            content,
+            category
+          });
+        }
+        const record = records.get(el);
         if (entry.isIntersecting) {
-          startTime = entry.time;
+          if (record.startTime === null) {
+            record.startTime = entry.time;
+          }
         }
         if (!entry.isIntersecting) {
-          endTime = entry.time;
-          const visibleDuration = endTime - startTime;
-          console.log("time", visibleDuration);
+          if (!record.startTime) return;
+          record.totalVisibleDuration += entry.time - record.startTime;
+          record.startTime = 0;
         }
       });
     };
@@ -3569,8 +3595,35 @@ var _PageTrackerService = class _PageTrackerService {
     targetElements.forEach((element) => {
       observer.observe(element);
     });
+    const finalize = () => {
+      const currentTime = Date.now();
+      page.pageDuration = currentTime - pageTimer;
+      records.forEach((record, element) => {
+        if (record.totalVisibleDuration > 0) {
+          if (record.category && !page.categories.includes(record.category)) {
+            page.categories.push(record.category);
+          }
+          if (record.content && !page.contents.includes(record.content)) {
+            page.contents.push(record.content);
+          }
+          page.records.push({
+            content: record.content,
+            category: record.category,
+            visibleDuration: record.totalVisibleDuration
+          });
+        }
+      });
+      _PageTrackerService.PageData = page;
+    };
+    setInterval(() => {
+      finalize();
+    }, 1e3);
+    window.addEventListener("beforeunload", () => {
+      finalize();
+    });
   }
 };
+__publicField(_PageTrackerService, "PageData");
 __publicField(_PageTrackerService, "instance");
 var PageTrackerService = _PageTrackerService;
 

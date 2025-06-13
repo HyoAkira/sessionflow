@@ -54,6 +54,17 @@ class SocketService {
           message: req.message,
         });
       });
+
+      socket.on("pageData", async (data, callback) => {
+        if (!data || typeof data !== "object") {
+          return callback({ error: true, message: "Invalid data format" });
+        }
+        const req = await DBService.sendPageData(data);
+        callback({
+          error: req.error,
+          message: req.message,
+        });
+      });
     });
   }
 }
