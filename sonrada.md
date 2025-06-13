@@ -2,3 +2,5 @@
 
 jwt for socket
 logger
+scroll için aralık değerleri ekleyeceğim, payload çok
+kısa sürede şişiyor.

@@ -23,11 +23,11 @@ class fundementalEvents {
   }
 
   trackScroll() {
-    document.addEventListener("scroll", () => {
-      const { scrollX: x, scrollY: y } = window;
-      const time = Date.now();
-      this.userData.scrolls.push({ x, y, time });
-    });
+    // document.addEventListener("scroll", () => {
+    //   const { scrollX: x, scrollY: y } = window;
+    //   const time = Date.now();
+    //   this.userData.scrolls.push({ x, y, time });
+    // });
     return this;
   }
 
