@@ -24,6 +24,7 @@ switch (arg) {
             await $`cd ${process.cwd()}&& docker-compose -f docker-compose.yaml up -d --build`;
 
         }
+
         console.info('Docker containers started');
         break;
 

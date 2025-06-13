@@ -1,21 +1,26 @@
-import Session from "../schemas/schema.sessions";
+import Session, { TSession } from "../schemas/schema.sessions";
 
 export default class DBService {
-  static createSession() {
-    Session.create({
-      sessionID: "1",
-      clicks: [],
-      scrolls: [],
-      focusLossCount: 0,
-      sessionStart: Date.now(),
-      sessionDuration: 0,
-      deviceType: "desktop", // Default value, can be updated later
-    })
-      .then((session) => {
-        console.log("Session created:", session);
-      })
-      .catch((error) => {
-        console.error("Error creating session:", error);
-      });
+  static async sendClientData(data: TSession) {
+    try {
+      const session = await Session.findOneAndUpdate(
+        {
+          sessionID: data.sessionID,
+        },
+        data,
+        { upsert: true }
+      );
+
+      return {
+        message: "Client data saved successfully",
+        error: false,
+      };
+    } catch (error) {
+      console.error("Error saving client data:", error);
+      return {
+        message: "Failed to save client data",
+        error: true,
+      };
+    }
   }
 }

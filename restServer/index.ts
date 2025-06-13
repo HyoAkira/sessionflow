@@ -2,10 +2,19 @@ import express from "express";
 import router from "./router";
 import cors from "cors";
 import { connect, model, Schema } from "mongoose";
-import DBService from "./services/db";
 const PORT = process.env.PORT || 3000;
-
+import { Server } from "socket.io";
+import { createServer } from "node:http";
+import SocketService from "./services/socket";
 const app = express();
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
+const ss = SocketService.getInstance();
+ss.setIO(io).eventListener();
 app.use(
   cors({
     origin: "*",
@@ -20,11 +29,9 @@ async function connectionDB() {
       dbName: "tas2",
     });
     console.info("Connected to MongoDB");
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.info(`Server is running on port ${PORT}`);
     });
-
-    DBService.createSession();
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
   }
