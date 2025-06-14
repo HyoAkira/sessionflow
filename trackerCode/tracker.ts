@@ -1,5 +1,5 @@
-import { start } from "repl";
 import io from "socket.io-client";
+import FormService from "./formService";
 
 type UserData = {
   sessionID: string;
@@ -151,6 +151,7 @@ class Tracker extends fundementalEvents {
     this.trackFocusLoss();
     this.getDeviceType();
     this.setPageEvents();
+    this.setFormEvents();
     return this;
   }
   startTracking() {
@@ -222,6 +223,11 @@ class Tracker extends fundementalEvents {
         console.log("Page data saved successfully:", cb.message);
       }
     });
+  }
+
+  setFormEvents() {
+    FormService.listenFormInputs();
+    return this;
   }
 }
 export default Tracker;
