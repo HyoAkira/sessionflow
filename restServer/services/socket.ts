@@ -65,6 +65,20 @@ class SocketService {
           message: req.message,
         });
       });
+      // client fast retrieve -- panel icin rest olsa da olur
+      socket.on("getSession", async (sessionID, callback) => {
+        if (!sessionID || typeof sessionID !== "string") {
+          return callback({ error: true, message: "Invalid session ID" });
+        }
+        const sessionData = await DBService.getSessionById(sessionID);
+        if (sessionData.error) {
+          return callback({ error: true, message: sessionData.message });
+        }
+        callback({
+          error: false,
+          data: sessionData.data,
+        });
+      });
     });
   }
 }

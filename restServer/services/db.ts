@@ -1,5 +1,5 @@
-import PageModel, { TPage } from "../schemas/page.sessions";
-import Session, { TSession } from "../schemas/schema.sessions";
+import PageModel, { TPage } from "../schemas/page.schema";
+import Session, { TSession } from "../schemas/sessions.schema";
 
 export default class DBService {
   static async sendPageData(data: TPage) {
@@ -7,7 +7,7 @@ export default class DBService {
     // client ve page bagi boyle kalmasi daha iyi
     try {
       const page = await PageModel.findOneAndUpdate(
-        { sessionID: data.sessionID },
+        { sessionID: data.sessionID, pageID: data.pageID },
         data,
         {
           upsert: true,
@@ -43,6 +43,31 @@ export default class DBService {
       console.error("Error saving client data:", error);
       return {
         message: "Failed to save client data",
+        error: true,
+      };
+    }
+  }
+
+  static async getSessionById(sessionID: string) {
+    try {
+      const session = await Session.findOne({ sessionID });
+      if (!session) {
+        return {
+          message: "Session not found",
+          data: null,
+          error: true,
+        };
+      }
+      return {
+        message: "Session retrieved successfully",
+        data: session,
+        error: false,
+      };
+    } catch (error) {
+      console.error("Error retrieving session:", error);
+      return {
+        message: "Failed to retrieve session",
+        data: null,
         error: true,
       };
     }

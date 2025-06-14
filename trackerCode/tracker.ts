@@ -84,6 +84,14 @@ class Tracker extends fundementalEvents {
       deviceType: localData.deviceType || undefined,
     };
     this.socketConnectionHandler();
+    this.socket.emit("getSession", this.userData.sessionID, (cb) => {
+      if (cb.error) {
+        console.error("Error fetching session data:", cb.message);
+      } else {
+        console.log("Session data fetched successfully:", cb.data);
+        this.userData = cb.data;
+      }
+    });
   }
   socketConnectionHandler() {
     this.socket.on("connect", () => {
@@ -203,6 +211,7 @@ class Tracker extends fundementalEvents {
   savePageDataToServer() {
     const pageData = PageTrackerService.PageData;
     pageData.sessionID = this.userData.sessionID;
+
     if (!pageData) {
       return;
     }
@@ -229,6 +238,7 @@ type IPage = {
 
 class PageTrackerService {
   public static PageData;
+  private static pageID = crypto.randomUUID();
   private PageTrackerService() {}
   private static instance: PageTrackerService;
   public static getInstance(): PageTrackerService {
@@ -275,14 +285,24 @@ class PageTrackerService {
         const record = records.get(el)!;
         if (entry.isIntersecting) {
           // Başlangıç zamanını kaydet
+
           if (record.startTime === null) {
-            record.startTime = entry.time;
+            record.startTime = Date.now();
           }
         }
         if (!entry.isIntersecting) {
           if (!record.startTime) return;
-          record.totalVisibleDuration += entry.time - record.startTime;
-          record.startTime = 0;
+          let endTime = Date.now();
+          record.totalVisibleDuration += endTime - record.startTime;
+          console.log(
+            "Visible",
+            record.totalVisibleDuration,
+            "startTime",
+            record.startTime,
+            "endTime",
+            endTime
+          );
+          record.startTime = null;
         }
       });
     };
@@ -297,6 +317,29 @@ class PageTrackerService {
     targetElements.forEach((element) => {
       observer.observe(element);
     });
+    const mutationObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+          mutation.addedNodes.forEach((node) => {
+            if (node instanceof HTMLElement) {
+              // Yeni eklenen elementleri gözlemle
+              if (
+                node.hasAttribute("data-ckcontent") ||
+                node.hasAttribute("data-ckcategory")
+              ) {
+                observer.observe(node);
+              }
+            }
+          });
+        }
+      });
+    });
+    mutationObserver.observe(document.body, {
+      attributes: true, // attribute değişimi
+      characterData: true, // metin değişimi
+      childList: true, // ekleme/silme
+      subtree: true, // tüm alt elementleri kapsar
+    });
 
     const finalize = () => {
       const currentTime = Date.now();
@@ -309,14 +352,19 @@ class PageTrackerService {
           if (record.content && !page.contents.includes(record.content)) {
             page.contents.push(record.content);
           }
-          page.records.push({
-            content: record.content,
-            category: record.category,
-            visibleDuration: record.totalVisibleDuration,
+          page.records = Array.from(records, ([el, rec]) => {
+            return {
+              content: rec.content,
+              category: rec.category,
+              visibleDuration: rec.totalVisibleDuration,
+              startTime: rec.startTime,
+            };
           });
         }
       });
+
       PageTrackerService.PageData = page;
+      PageTrackerService.PageData.pageID = PageTrackerService.pageID;
     };
 
     setInterval(() => {

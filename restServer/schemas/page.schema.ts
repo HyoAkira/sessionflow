@@ -14,6 +14,7 @@ const recordSchema = new Schema(
 
 const pageSchema = new Schema(
   {
+    pageID: { type: String, required: true },
     sessionID: { type: String, required: true },
     title: { type: String, required: true },
     url: { type: String, required: true },
