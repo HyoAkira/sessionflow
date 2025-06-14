@@ -29,13 +29,11 @@ export default class FormService {
           element.type === "number" ||
           element.tagName.toLowerCase() === "textarea"
         ) {
-          // Use 'change' event for text inputs and textareas
           input.addEventListener("change", (e) => {
             const target = e.target as HTMLInputElement;
             console.log(`Input value changed: ${target.value}`);
           });
         } else {
-          // Use 'input' event for other input types
           input.addEventListener("input", (e) => {
             const target = e.target as HTMLInputElement;
             if (target.type === "checkbox") {
