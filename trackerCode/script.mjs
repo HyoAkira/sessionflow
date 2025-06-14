@@ -11,6 +11,7 @@ switch (arg) {
     case 'serial':
 
         await $`pnpm run bundle`;
+        console.info('Bundling completed');
         await $`cp ./dist/bundle.js ../www/web/script.js`;
         console.info('Script copied to ../www/web/script.js');
         process.chdir('../www/');

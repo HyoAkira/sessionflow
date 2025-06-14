@@ -9,7 +9,9 @@ esbuild
     format: "esm",
     platform: "browser",
     target: "es2020",
-    sourcemap: true,
+    sourcemap: false,
+    minify: true,
+
     loader: {
       ".ts": "ts",
     },
