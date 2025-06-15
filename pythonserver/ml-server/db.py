@@ -36,3 +36,13 @@ class DBService:
         df['categories'] = df['categories'].fillna("")
         df['contents'] = df['contents'].fillna("")
         return df
+    
+    def retrieve_messages_comments(self):
+        df = self.retrieve_data()
+        df = df[['message', 'comment']].dropna()
+        text_df = pd.concat([
+            df['message'].dropna(),
+            df['comment'].dropna()
+        ], ignore_index=True).to_frame(name='text')
+
+        return text_df
