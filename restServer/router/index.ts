@@ -29,7 +29,7 @@ router.get("/liveusercount", (req, res) => {
   });
 });
 
-router.get("/visitreports", async (req, res) => {
+router.get("/sessionreports", async (req, res) => {
   const visitReports = await DBService.getAllSessions();
   if (visitReports.error) {
     res.status(500).json({
@@ -42,4 +42,67 @@ router.get("/visitreports", async (req, res) => {
   }
 });
 
+router.get("/dailysessionsreport", async (req, res) => {
+  const dailySessionsReport = await DBService.getSessionsByRange("daily");
+  if (dailySessionsReport.error) {
+    res.status(500).json({
+      ...dailySessionsReport,
+    });
+  } else {
+    res.status(200).json({
+      ...dailySessionsReport,
+    });
+  }
+});
+
+router.get("/weeklysessionsreport", async (req, res) => {
+  const weeklySessionsReport = await DBService.getSessionsByRange("weekly");
+  if (weeklySessionsReport.error) {
+    res.status(500).json({
+      ...weeklySessionsReport,
+    });
+  } else {
+    res.status(200).json({
+      ...weeklySessionsReport,
+    });
+  }
+});
+router.get("/monthlysessionsreport", async (req, res) => {
+  const monthlySessionsReport = await DBService.getSessionsByRange("monthly");
+  if (monthlySessionsReport.error) {
+    res.status(500).json({
+      ...monthlySessionsReport,
+    });
+  } else {
+    res.status(200).json({
+      ...monthlySessionsReport,
+    });
+  }
+});
+router.get("/rangesessionsreport", async (req, res) => {
+  const { start, end } = req.query;
+  const startDate = new Date(start as string) || null;
+  const endDate = new Date(end as string) || null;
+  if (!startDate || !endDate) {
+    res.status(400).json({
+      message: "Invalid date range provided",
+      error: true,
+    });
+    return;
+  }
+  const monthlySessionsReport = await DBService.getSessionsByRange(
+    "",
+    startDate,
+    endDate
+  );
+  if (monthlySessionsReport.error) {
+    res.status(500).json({
+      ...monthlySessionsReport,
+    });
+  } else {
+    res.status(200).json({
+      ...monthlySessionsReport,
+    });
+  }
+});
 export default router;

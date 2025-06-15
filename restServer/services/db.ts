@@ -110,4 +110,88 @@ export default class DBService {
       };
     }
   }
+
+  static async getSessionsByRange(
+    range?: "daily" | "weekly" | "monthly" | "",
+    start?: Date,
+    end?: Date
+  ) {
+    try {
+      switch (range) {
+        case "daily": {
+          const today = new Date(Date.now());
+          today.setUTCHours(0, 0, 0, 0);
+          const dailySessions = await Session.find({
+            createdAt: { $gte: today },
+          });
+          return {
+            message: "Daily sessions retrieved successfully",
+            data: dailySessions,
+            error: false,
+          };
+        }
+        case "weekly": {
+          const today = new Date(Date.now());
+          const dayOfWeek = today.getUTCDay();
+          const diffToMonday = (dayOfWeek + 6) % 7;
+          const monday = new Date(today);
+          monday.setUTCDate(today.getUTCDate() - diffToMonday);
+          monday.setUTCHours(0, 0, 0, 0);
+          const sunday = new Date(monday);
+          sunday.setUTCDate(monday.getUTCDate() + 6);
+          sunday.setUTCHours(23, 59, 59, 999);
+          const weeklySessions = await Session.find({
+            createdAt: { $gte: monday, $lte: sunday },
+          });
+          return {
+            message: "Weekly sessions retrieved successfully",
+            data: weeklySessions,
+            error: false,
+          };
+        }
+        case "monthly": {
+          const today = new Date(Date.now());
+          const year = today.getUTCFullYear();
+          const month = today.getUTCMonth();
+          const start = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
+          const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
+          const monthlySessions = await Session.find({
+            createdAt: { $gte: start, $lte: end },
+          });
+          return {
+            message: "Monthly sessions retrieved successfully",
+            data: monthlySessions,
+            error: false,
+          };
+        }
+        default: {
+          if (start && end) {
+            start.setUTCHours(0, 0, 0, 0);
+            end.setUTCHours(23, 59, 59, 999);
+            const sessionsInRange = await Session.find({
+              createdAt: { $gte: start, $lte: end },
+            });
+            return {
+              message: "Sessions in range retrieved successfully",
+              data: sessionsInRange,
+              error: false,
+            };
+          } else {
+            return {
+              message: "No range specified",
+              statusCode: 400,
+              error: true,
+            };
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error retrieving sessions:", error);
+      return {
+        message: "Failed to retrieve sessions",
+        data: [],
+        error: true,
+      };
+    }
+  }
 }
