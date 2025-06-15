@@ -3,7 +3,8 @@ import FormService from "./formService";
 
 type UserData = {
   sessionID: string;
-  clicks: { x: number; y: number; time: number }[];
+  // clicks: { x: number; y: number; time: number }[];
+  clicks: number;
   scrolls: { y: number; x: number; time: number }[];
   focusLossCount: number;
   sessionStart: number;
@@ -16,9 +17,10 @@ class fundementalEvents {
 
   trackClick() {
     document.addEventListener("click", (event) => {
-      const { clientX: x, clientY: y } = event;
-      const time = Date.now();
-      this.userData.clicks.push({ x, y, time });
+      // const { clientX: x, clientY: y } = event;
+      // const time = Date.now();
+      // this.userData.clicks.push({ x, y, time });
+      this.userData.clicks++;
     });
     return this;
   }
@@ -76,7 +78,7 @@ class Tracker extends fundementalEvents {
     this.serverConf.url = url || "http://localhost:3000/api/";
     this.userData = {
       sessionID: localData.sessionID || crypto.randomUUID(),
-      clicks: localData.clicks || [],
+      clicks: localData.clicks || 0,
       scrolls: localData.scrolls || [],
       focusLossCount: localData.focusLossCount || 0,
       sessionStart: localData.sessionStart || Date.now(),
@@ -130,7 +132,7 @@ class Tracker extends fundementalEvents {
           localStorage.removeItem("userData");
           this.userData = {
             sessionID: crypto.randomUUID(),
-            clicks: [],
+            clicks: 0,
             scrolls: [],
             focusLossCount: 0,
             sessionStart: Date.now(),

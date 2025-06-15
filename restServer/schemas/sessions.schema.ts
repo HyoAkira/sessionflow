@@ -3,7 +3,8 @@ import { model, Schema, HydratedDocument, InferSchemaType } from "mongoose";
 const sessionSchema = new Schema(
   {
     sessionID: { type: String, required: true },
-    clicks: [],
+    // clicks: [],
+    clicks: { type: Number, default: 0 },
     scrolls: [],
     focusLossCount: { type: Number, default: 0 },
     sessionStart: { type: Number, default: 0 },
