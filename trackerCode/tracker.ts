@@ -1,7 +1,5 @@
 import io from "socket.io-client";
 import FormService from "./formService";
-import { set } from "mongoose";
-import { fileURLToPath } from "url";
 
 type UserData = {
   sessionID: string;
@@ -230,13 +228,14 @@ class Tracker extends fundementalEvents {
 
   setFormEvents() {
     FormService.listenFormInputs();
-    FormService.FormData.sessionID = this.userData.sessionID;
-    FormService.FormData.pageID = PageTrackerService.pageID;
 
     return this;
   }
   saveFormEventsToServer() {
+    FormService.FormData.sessionID = this.userData.sessionID;
+    FormService.FormData.pageID = PageTrackerService.pageID;
     const formSave = () => {
+      // bos form ise atma
       if (
         !FormService.FormData.comment &&
         !FormService.FormData.message &&
@@ -250,6 +249,7 @@ class Tracker extends fundementalEvents {
           console.error("Error saving form data to server:", cb.message);
         } else {
           console.log("Form data saved successfully:", cb.message);
+
           console.log(
             "Form data:",
             JSON.stringify(FormService.FormData, null, 2)
@@ -350,7 +350,7 @@ class PageTrackerService {
       threshold: 0.3,
     });
 
-    // ckcontent ve ckcategory içeren tüm elementleri al
+    // ckcontent ve ckcategory içeren tüm elementler
     const targetElements = document.querySelectorAll(
       "[data-ckcontent],[data-ckcategory]"
     );
@@ -362,7 +362,6 @@ class PageTrackerService {
         if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
           mutation.addedNodes.forEach((node) => {
             if (node instanceof HTMLElement) {
-              // Yeni eklenen elementleri gözlemle
               if (
                 node.hasAttribute("data-ckcontent") ||
                 node.hasAttribute("data-ckcategory")
