@@ -5,7 +5,7 @@ const sessionSchema = new Schema(
     sessionID: { type: String, required: true },
     // clicks: [],
     clicks: { type: Number, default: 0 },
-    scrolls: [],
+    // scrolls: [],
     focusLossCount: { type: Number, default: 0 },
     sessionStart: { type: Number, default: 0 },
     sessionDuration: { type: Number, default: 0 },

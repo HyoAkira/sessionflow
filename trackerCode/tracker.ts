@@ -5,7 +5,7 @@ type UserData = {
   sessionID: string;
   // clicks: { x: number; y: number; time: number }[];
   clicks: number;
-  scrolls: { y: number; x: number; time: number }[];
+  // scrolls: { y: number; x: number; time: number }[];
   focusLossCount: number;
   sessionStart: number;
   sessionDuration: number;
@@ -29,7 +29,7 @@ class fundementalEvents {
     document.addEventListener("scroll", () => {
       const { scrollX: x, scrollY: y } = window;
       const time = Date.now();
-      this.userData.scrolls.push({ x, y, time });
+      // this.userData.scrolls.push({ x, y, time });
     });
     return this;
   }
@@ -79,7 +79,7 @@ class Tracker extends fundementalEvents {
     this.userData = {
       sessionID: localData.sessionID || crypto.randomUUID(),
       clicks: localData.clicks || 0,
-      scrolls: localData.scrolls || [],
+      // scrolls: localData.scrolls || [],
       focusLossCount: localData.focusLossCount || 0,
       sessionStart: localData.sessionStart || Date.now(),
       sessionDuration: localData.sessionDuration || 0,
@@ -133,12 +133,13 @@ class Tracker extends fundementalEvents {
           this.userData = {
             sessionID: crypto.randomUUID(),
             clicks: 0,
-            scrolls: [],
+            // scrolls: [],
             focusLossCount: 0,
             sessionStart: Date.now(),
             sessionDuration: 0,
             deviceType: undefined,
           };
+          this.getDeviceType();
         }
       }
     });
