@@ -65,6 +65,17 @@ class SocketService {
           message: req.message,
         });
       });
+
+      socket.on("formData", async (data, cb) => {
+        if (!data || typeof data !== "object") {
+          return cb({ error: true, message: "Invalid data format" });
+        }
+        const req = await DBService.sendFormData(data);
+        cb({
+          error: req.error,
+          message: req.message,
+        });
+      });
       // client fast retrieve -- panel icin rest olsa da olur
       socket.on("getSession", async (sessionID, callback) => {
         if (!sessionID || typeof sessionID !== "string") {

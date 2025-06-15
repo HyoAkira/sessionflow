@@ -1,5 +1,13 @@
+import { TFormModel } from "../restServer/schemas/form.schema";
+
 export default class FormService {
-  static FormData = {};
+  static FormData: TFormModel = {
+    sessionID: "",
+    pageID: "",
+    formID: "1",
+  };
+  static FormDataArr: Array<TFormModel> = [];
+
   static listenFormInputs() {
     let keywords = [
       "comment",
@@ -12,7 +20,8 @@ export default class FormService {
       "maxprice",
       "gender",
     ];
-    let formInputs = document.querySelectorAll("input, textarea, select");
+    const formInputs = document.querySelectorAll("input, textarea, select");
+
     formInputs.forEach((input) => {
       const nameAttr = input.getAttribute("name");
       const idAttr = input.id;
@@ -49,18 +58,17 @@ export default class FormService {
 
             identifier = identifier.replace(
               /minprice|min-price|low-price/gi,
-              "min-price"
+              "min_price"
             );
 
             identifier = identifier.replace(
               /maxprice|max-price|high-price/gi,
-              "max-price"
+              "max_price"
             );
 
             const target = e.target as HTMLInputElement;
             console.log(`Input value changed: ${target.value}`);
             FormService.FormData[identifier] = target.value;
-            console.log("formData", FormService.FormData);
           });
         } else {
           input.addEventListener("input", (e) => {

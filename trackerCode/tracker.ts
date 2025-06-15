@@ -1,5 +1,7 @@
 import io from "socket.io-client";
 import FormService from "./formService";
+import { set } from "mongoose";
+import { fileURLToPath } from "url";
 
 type UserData = {
   sessionID: string;
@@ -152,6 +154,7 @@ class Tracker extends fundementalEvents {
     this.getDeviceType();
     this.setPageEvents();
     this.setFormEvents();
+    this.saveFormEventsToServer();
     return this;
   }
   startTracking() {
@@ -227,6 +230,37 @@ class Tracker extends fundementalEvents {
 
   setFormEvents() {
     FormService.listenFormInputs();
+    FormService.FormData.sessionID = this.userData.sessionID;
+    FormService.FormData.pageID = PageTrackerService.pageID;
+
+    return this;
+  }
+  saveFormEventsToServer() {
+    const formSave = () => {
+      if (
+        !FormService.FormData.comment &&
+        !FormService.FormData.message &&
+        !FormService.FormData.gender &&
+        !FormService.FormData.min_price &&
+        !FormService.FormData.max_price
+      )
+        return;
+      this.socket.emit("formData", FormService.FormData, (cb) => {
+        if (cb.error) {
+          console.error("Error saving form data to server:", cb.message);
+        } else {
+          console.log("Form data saved successfully:", cb.message);
+          console.log(
+            "Form data:",
+            JSON.stringify(FormService.FormData, null, 2)
+          );
+        }
+      });
+    };
+
+    setInterval(formSave, 3000);
+    window.addEventListener("beforeunload", formSave, false);
+
     return this;
   }
 }
@@ -244,7 +278,7 @@ type IPage = {
 
 class PageTrackerService {
   public static PageData;
-  private static pageID = crypto.randomUUID();
+  static pageID = crypto.randomUUID();
   private PageTrackerService() {}
   private static instance: PageTrackerService;
   public static getInstance(): PageTrackerService {

@@ -1,7 +1,27 @@
+import FormModel, { TFormModel } from "../schemas/form.schema";
 import PageModel, { TPage } from "../schemas/page.schema";
 import Session, { TSession } from "../schemas/sessions.schema";
 
 export default class DBService {
+  static async sendFormData(data: TFormModel) {
+    try {
+      await FormModel.findOneAndUpdate(
+        { sessionID: data.sessionID, pageID: data.pageID, formID: data.formID },
+        { ...data },
+        { upsert: true }
+      );
+      return {
+        message: "Form data saved successfully",
+        error: false,
+      };
+    } catch (error) {
+      console.error("Error saving form data:", error);
+      return {
+        message: "Failed to save form data",
+        error: true,
+      };
+    }
+  }
   static async sendPageData(data: TPage) {
     // sessionID zaten client tarafinda oturum bitince sifirlanacak.
     // client ve page bagi boyle kalmasi daha iyi
