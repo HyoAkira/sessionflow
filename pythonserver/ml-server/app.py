@@ -5,7 +5,10 @@ from db import DBService
 import pandas as pd
 app = Flask(__name__)
 from utils.shopping_util import kmeans_linear_shopping
-
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.cluster import KMeans 
 # models
 kmeans2segment = joblib.load('./models/kmeans_2segment.pkl')
 kmeans3segment = joblib.load('./models/kmeans_3segment.pkl')
@@ -60,12 +63,45 @@ async def depression():
     
 
 @app.route('/shopping', methods=['POST'])    
-
 async def shoppingBehavior():
     df = dbs.retrieve_data(process=False)
     try:
         result = kmeans_linear_shopping(df)
         return jsonify(result), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/modelreload', methods=['POST'])
+async def modelReload():
+    df = dbs.retrieve_data()
+
+    try:
+        numerical_features = df.select_dtypes(include=['float64', 'int64']).columns
+
+        categorical_features = df.select_dtypes(include=['object']).columns
+
+        ss = StandardScaler()
+        ohe = OneHotEncoder(handle_unknown='ignore')
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', ss, numerical_features),
+                ('cat', ohe, categorical_features)
+            ]
+        )
+
+        for n_clusters in [2,3,5]:
+            kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+            pipeline = Pipeline(steps=[('preprocessor', preprocessor), ('kmeans', kmeans)])
+            pipeline.fit(df)
+            df[f'cluster_{n_clusters}'] = pipeline.predict(df)
+            joblib.dump(pipeline, f'kmeans_{n_clusters}segment.pkl')
+        global kmeans2segment, kmeans3segment, kmeans5segment, lightgbmdepression
+        kmeans2segment = joblib.load('./models/kmeans_2segment.pkl')
+        kmeans3segment = joblib.load('./models/kmeans_3segment.pkl')
+        kmeans5segment = joblib.load('./models/kmeans_5segment.pkl')
+        lightgbmdepression = joblib.load('./models/lightgbm.pkl')
+        return jsonify({'status': 'Models reloaded successfully'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
