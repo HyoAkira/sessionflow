@@ -1,4 +1,4 @@
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import FormService from "./formService";
 
 type UserData = {
@@ -65,17 +65,19 @@ class fundementalEvents {
 }
 
 class Tracker extends fundementalEvents {
-  private socket = io("http://localhost:3000");
+  private socket: Socket;
   protected userData: UserData;
   private serverConf = {
     url: "",
   };
-  constructor(url?) {
+  constructor(url) {
     super();
     const localData: UserData = JSON.parse(
       localStorage.getItem("userData") || "{}"
     );
-    this.serverConf.url = url || "http://localhost:3000/api/";
+
+    this.socket = io(url);
+    // this.serverConf.url = url || "http://localhost:3000/api/";
     this.userData = {
       sessionID: localData.sessionID || crypto.randomUUID(),
       clicks: localData.clicks || 0,

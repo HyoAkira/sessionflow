@@ -3,4 +3,6 @@
 
 import Tracker from "./tracker";
 
-const tracker = new Tracker().fastStart().startTracking();
+const tracker = new Tracker("http://localhost:3000")
+  .fastStart()
+  .startTracking();
