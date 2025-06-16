@@ -1,0 +1,7 @@
+flask
+hypercorn
+flask-cors
+flask[async]
+kmeans
+numpy
+scikit-learn

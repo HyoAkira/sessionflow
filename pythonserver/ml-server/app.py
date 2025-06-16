@@ -95,7 +95,7 @@ async def modelReload():
             pipeline = Pipeline(steps=[('preprocessor', preprocessor), ('kmeans', kmeans)])
             pipeline.fit(df)
             df[f'cluster_{n_clusters}'] = pipeline.predict(df)
-            joblib.dump(pipeline, f'kmeans_{n_clusters}segment.pkl')
+            joblib.dump(pipeline, f'./models/kmeans_{n_clusters}segment.pkl')
         global kmeans2segment, kmeans3segment, kmeans5segment, lightgbmdepression
         kmeans2segment = joblib.load('./models/kmeans_2segment.pkl')
         kmeans3segment = joblib.load('./models/kmeans_3segment.pkl')

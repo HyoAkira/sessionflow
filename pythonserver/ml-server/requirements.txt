@@ -1,4 +1,0 @@
-flask
-hypercorn
-flask-cors
-flask[async]
