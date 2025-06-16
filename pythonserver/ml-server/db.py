@@ -5,7 +5,7 @@ class DBService:
     def __init__(self, connection_string):
         self.client = MongoClient(connection_string)
 
-    def retrieve_data(self):
+    def retrieve_data(self,process=True):
         db = self.client["tas2"]
         forms = list(db["forms"].find())
         pages = list(db["pages"].find())
@@ -18,23 +18,26 @@ class DBService:
         merged1 = pd.merge(df_pages, df_sessions, on=["sessionID"], suffixes=("", "_session"))
         merged2 = pd.merge(merged1, df_forms, on=["pageID", "sessionID"], suffixes=("", "_form"), how="left")
         df = merged2
-        df.drop(columns=["records",'sessionID',"pageID","date", "formID",'createdAt', 'updatedAt', 'createdAt_session', 'updatedAt_session',"sessionStart"], inplace=True, errors="ignore")
+        df.drop(["records"],axis=1, inplace=True, errors="ignore")
+        if process:  
+          df.drop(columns=["records",'sessionID',"pageID","date", "formID",'createdAt', 'updatedAt', 'createdAt_session', 'updatedAt_session',"sessionStart"], inplace=True, errors="ignore")
         df_exploded = df.explode(['categories']).reset_index(drop=True)
         df_exploded = df_exploded.explode(['contents']).reset_index(drop=True)
         df = df_exploded
-        df = self.preprocess_data(df)
+        if process:
+            df = self.preprocess_data(df)
         return df
 
     def preprocess_data(self, df):
-        df = df.copy()
+        
         df['max_price'] = df['max_price'].fillna(df['max_price'].median())
         df['min_price'] = df['min_price'].fillna(df['min_price'].median())
-        df['gender'] = df['gender'].fillna("")
-        df['message'] = df['message'].fillna("")
-        df['comment'] = df['comment'].fillna("")
-        df['deviceType'] = df['deviceType'].fillna("")
-        df['categories'] = df['categories'].fillna("")
-        df['contents'] = df['contents'].fillna("")
+        df['gender'] = df['gender'].fillna("NULL")
+        df['message'] = df['message'].fillna("NULL")
+        df['comment'] = df['comment'].fillna("NULL")
+        df['deviceType'] = df['deviceType'].fillna("NULL")
+        df['categories'] = df['categories'].fillna("NULL")
+        df['contents'] = df['contents'].fillna("NULL")
         return df
     
     def retrieve_messages_comments(self):

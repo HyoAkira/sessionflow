@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request
 from db import DBService
 import pandas as pd
 app = Flask(__name__)
+from utils.shopping_util import kmeans_linear_shopping
 
 # models
 kmeans2segment = joblib.load('./models/kmeans_2segment.pkl')
@@ -58,8 +59,15 @@ async def depression():
         return jsonify({'error': str(e)}), 500
     
 
+@app.route('/shopping', methods=['POST'])    
 
-
+async def shoppingBehavior():
+    df = dbs.retrieve_data(process=False)
+    try:
+        result = kmeans_linear_shopping(df)
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 async def modelProcess(df,result):
     df["segment"] = result
