@@ -20,7 +20,7 @@ class DBService:
         df = merged2
         df.drop(["records"],axis=1, inplace=True, errors="ignore")
         if process:  
-          df.drop(columns=["records",'sessionID',"pageID","date", "formID",'createdAt', 'updatedAt', 'createdAt_session', 'updatedAt_session',"sessionStart"], inplace=True, errors="ignore")
+          df.drop(columns=["records",'siteID','sessionID',"pageID","date", "formID",'createdAt', 'updatedAt', 'createdAt_session', 'updatedAt_session',"sessionStart"], inplace=True, errors="ignore")
         df_exploded = df.explode(['categories']).reset_index(drop=True)
         df_exploded = df_exploded.explode(['contents']).reset_index(drop=True)
         df = df_exploded

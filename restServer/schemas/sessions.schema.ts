@@ -2,6 +2,7 @@ import { model, Schema, HydratedDocument, InferSchemaType } from "mongoose";
 
 const sessionSchema = new Schema(
   {
+    siteID: { type: String, required: true },
     sessionID: { type: String, required: true },
     // clicks: [],
     clicks: { type: Number, default: 0 },

@@ -76,7 +76,7 @@ class Tracker extends fundementalEvents {
       localStorage.getItem("userData") || "{}"
     );
 
-    this.socket = io(url);
+    this.socket = io(url, { auth: { token: localStorage.getItem("cktoken") } });
     // this.serverConf.url = url || "http://localhost:3000/api/";
     this.userData = {
       sessionID: localData.sessionID || crypto.randomUUID(),
@@ -100,6 +100,9 @@ class Tracker extends fundementalEvents {
   socketConnectionHandler() {
     this.socket.on("connect", () => {
       console.log("Socket connected:", this.socket.id);
+    });
+    this.socket.on("connect_error", (err) => {
+      console.error("❌ Socket auth error:", err.message);
     });
   }
   //   workerSession() {
