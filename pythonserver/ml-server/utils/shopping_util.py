@@ -8,7 +8,7 @@ from sklearn.preprocessing import FunctionTransformer, StandardScaler, OneHotEnc
 from sklearn.compose import ColumnTransformer
 from sklearn.cluster import KMeans
 
-def ckmeans_linear_shopping(df):
+def kmeans_linear_shopping(df):
     df['max_price'] = df['max_price'].fillna(df['max_price'].median())
     df['min_price'] = df['min_price'].fillna(df['min_price'].median())
     df['gender'] = df['gender'].fillna("NULL")

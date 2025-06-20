@@ -1,0 +1,86 @@
+@startuml "Software Structure"
+
+skinparam dpi 300
+
+
+node "CookieChef" {
+
+node "BACK-END" {
+    [ EXPRESS API]
+        [Socket Service]
+        [FLASK API]
+    database "MongoDB"
+}
+frame "FRONT-END" {
+        [CookieChef Vite (React) App]
+}
+node "Tracking Code" {
+ folder "Tracking Code" {
+        [CookieChef Tracking Code]
+        [ESBUILD]
+    }
+}
+}
+@enduml
+
+@startuml "MongoDB Structure"
+skinparam dpi 300
+skinparam ranksep 100
+skinparam nodesep 100
+left to right direction
+database "MongoDB" {
+object form 
+object page 
+object sessions 
+object site 
+object user
+
+
+form : formID
+form : pageID
+form : sessionID
+form : message
+form : comment
+form : min_price
+form : max_price
+form : gender
+
+page : pageID
+page : sessionID
+page : title
+page : url
+page : date
+page : contents
+page : records
+page : categories
+page : pageDuration
+
+sessions : siteID
+sessions : sessionID
+sessions : clicks
+sessions : focusLossCount
+sessions : sessionStart
+sessions : sessionDuration
+sessions : deviceType
+
+site : userID
+site : siteID
+site : siteName
+site : siteURL
+
+
+user : userID
+user : email
+user : password
+user : firstName
+user : lastName
+
+user "1" -- "*" site
+site "1" -- "*" sessions
+sessions "1" -- "*" page
+page "1" -- "*" form
+skinparam linetype ortho
+}
+
+
+@enduml
