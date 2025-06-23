@@ -9,6 +9,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.cluster import KMeans 
+from sklearn.decomposition import PCA
+
 # models
 kmeans2segment = joblib.load('./models/kmeans_2segment.pkl')
 kmeans3segment = joblib.load('./models/kmeans_3segment.pkl')
@@ -90,12 +92,24 @@ async def modelReload():
             ]
         )
 
-        for n_clusters in [2,3,5]:
+        pca = PCA(n_components=2)
+
+
+        for n_clusters in [2, 3, 5]:
             kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-            pipeline = Pipeline(steps=[('preprocessor', preprocessor), ('kmeans', kmeans)])
+            pipeline = Pipeline(steps=[
+                ('preprocessor', preprocessor),
+                ('pca', pca),
+                ('kmeans', kmeans)
+            ])
             pipeline.fit(df)
+            xpca = pipeline.named_steps['pca'].transform(
+                pipeline.named_steps['preprocessor'].transform(df)
+            )
+            df[f"pca1_{n_clusters}"] = xpca[:, 0]
+            df[f"pca2_{n_clusters}"] = xpca[:, 1]
             df[f'cluster_{n_clusters}'] = pipeline.predict(df)
-            joblib.dump(pipeline, f'./models/kmeans_{n_clusters}segment.pkl')
+            joblib.dump(pipeline, f'kmeans_{n_clusters}segment.pkl')
         global kmeans2segment, kmeans3segment, kmeans5segment, lightgbmdepression
         kmeans2segment = joblib.load('./models/kmeans_2segment.pkl')
         kmeans3segment = joblib.load('./models/kmeans_3segment.pkl')
