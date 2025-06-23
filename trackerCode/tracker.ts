@@ -96,6 +96,8 @@ class Tracker extends fundementalEvents {
         this.userData = cb.data;
       }
     });
+
+    this.socket.emit("test1", "test");
   }
   socketConnectionHandler() {
     this.socket.on("connect", () => {

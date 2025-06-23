@@ -31,10 +31,10 @@ router.get("/liveusercount", (req, res) => {
   });
 });
 
-router.get("/sessionreports", async (req, res) => {
+router.get("/sessionreports", async (req, res, next) => {
   const visitReports = await DBService.getAllSessions();
   if (visitReports.error) {
-    res.status(500).json({
+    next({
       ...visitReports,
     });
   } else {
@@ -44,10 +44,10 @@ router.get("/sessionreports", async (req, res) => {
   }
 });
 
-router.get("/dailysessionsreport", async (req, res) => {
+router.get("/dailysessionsreport", async (req, res, next) => {
   const dailySessionsReport = await DBService.getSessionsByRange("daily");
   if (dailySessionsReport.error) {
-    res.status(500).json({
+    next({
       ...dailySessionsReport,
     });
   } else {
@@ -57,10 +57,10 @@ router.get("/dailysessionsreport", async (req, res) => {
   }
 });
 
-router.get("/weeklysessionsreport", async (req, res) => {
+router.get("/weeklysessionsreport", async (req, res, next) => {
   const weeklySessionsReport = await DBService.getSessionsByRange("weekly");
   if (weeklySessionsReport.error) {
-    res.status(500).json({
+    next({
       ...weeklySessionsReport,
     });
   } else {
@@ -69,10 +69,10 @@ router.get("/weeklysessionsreport", async (req, res) => {
     });
   }
 });
-router.get("/monthlysessionsreport", async (req, res) => {
+router.get("/monthlysessionsreport", async (req, res, next) => {
   const monthlySessionsReport = await DBService.getSessionsByRange("monthly");
   if (monthlySessionsReport.error) {
-    res.status(500).json({
+    next({
       ...monthlySessionsReport,
     });
   } else {
@@ -81,14 +81,15 @@ router.get("/monthlysessionsreport", async (req, res) => {
     });
   }
 });
-router.get("/rangesessionsreport", async (req, res) => {
+router.get("/rangesessionsreport", async (req, res, next) => {
   const { start, end } = req.query;
   const startDate = new Date(start as string) || null;
   const endDate = new Date(end as string) || null;
   if (!startDate || !endDate) {
-    res.status(400).json({
+    next({
       message: "Invalid date range provided",
       error: true,
+      code: 400,
     });
     return;
   }
@@ -108,37 +109,41 @@ router.get("/rangesessionsreport", async (req, res) => {
   }
 });
 
-router.post("/usercreate", async (req, res) => {
+router.post("/usercreate", async (req, res, next) => {
   const { email, password, firstName, lastName }: TUser = req.body;
   if (!email || !password || !firstName || !lastName) {
-    res.status(400).json({
+    next({
       message: "All fields are required",
       error: true,
+      code: 400,
     });
+    return;
   }
   const userCreateResult = await DBService.userCreate(req.body);
   if (userCreateResult.error) {
-    res.status(500).json({
+    next({
       ...userCreateResult,
     });
+    return;
   } else {
     res.status(201).json({
       ...userCreateResult,
     });
   }
 });
-router.post("/userlogin", async (req, res) => {
+router.post("/userlogin", async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    res.status(400).json({
+    next({
       message: "Email and password are required",
       error: true,
+      code: 400,
     });
     return;
   } else {
     const userLoginResult = await DBService.userGet({ email, password });
     if (userLoginResult.error) {
-      res.status(500).json({
+      next({
         ...userLoginResult,
       });
       return;
@@ -157,10 +162,14 @@ router.post("/userlogin", async (req, res) => {
   }
 });
 
-router.get("/auth", async (req, res) => {
+router.get("/auth", async (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
   if (!token) {
-    res.status(401).json({ message: "No token provided" });
+    next({
+      message: "No token provided",
+      code: 401,
+      error: true,
+    });
     return;
   }
   try {
@@ -174,7 +183,11 @@ router.get("/auth", async (req, res) => {
       data: { user: decoded },
     });
   } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
+    next({
+      message: "Invalid token",
+      code: 401,
+      error: true,
+    });
   }
 });
 
@@ -184,7 +197,11 @@ async function guard(req, res, next) {
   const token = req.headers["authorization"]?.split(" ")[1];
 
   if (!token) {
-    next({ message: "No token provided" });
+    next({
+      message: "No token provided",
+      code: 401,
+      error: true,
+    });
     return;
   }
 
@@ -198,6 +215,10 @@ async function guard(req, res, next) {
     next();
   } catch (error) {
     console.log("JWT verification error:", error);
-    next({ message: "Invalid token" });
+    next({
+      message: "Invalid token",
+      code: 401,
+      error: true,
+    });
   }
 }

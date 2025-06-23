@@ -22,6 +22,7 @@ export default class DBService {
       return {
         message: "Failed to save form data",
         error: true,
+        code: 500,
       };
     }
   }
@@ -45,6 +46,7 @@ export default class DBService {
       return {
         message: "Failed to save page data",
         error: true,
+        code: 500,
       };
     }
   }
@@ -67,6 +69,7 @@ export default class DBService {
       return {
         message: "Failed to save client data",
         error: true,
+        code: 500,
       };
     }
   }
@@ -79,6 +82,7 @@ export default class DBService {
           message: "Session not found",
           data: null,
           error: true,
+          code: 404,
         };
       }
       return {
@@ -92,6 +96,7 @@ export default class DBService {
         message: "Failed to retrieve session",
         data: null,
         error: true,
+        code: 500,
       };
     }
   }
@@ -110,6 +115,7 @@ export default class DBService {
         message: "Failed to retrieve sessions",
         data: [],
         error: true,
+        code: 500,
       };
     }
   }
@@ -194,6 +200,7 @@ export default class DBService {
         message: "Failed to retrieve sessions",
         data: [],
         error: true,
+        code: 500,
       };
     }
   }
@@ -328,7 +335,7 @@ export default class DBService {
           message: "Site already exists for another user",
           data: null,
           error: true,
-          statusCode: 400,
+          statusCode: 409, // Conflict
         };
       } else if (site) {
         if (data.siteID) {

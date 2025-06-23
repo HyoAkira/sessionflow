@@ -90,6 +90,10 @@ class SocketService {
           data: sessionData.data,
         });
       });
+
+      socket.on("test1", (data) => {
+        console.log("Test1 event received:", data);
+      });
     });
   }
 }
