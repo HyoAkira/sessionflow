@@ -259,7 +259,7 @@ export default class DBService {
           };
         } else {
           return {
-            message: "Invalid password",
+            message: "Invalid email or password",
             data: null,
             error: true,
             statusCode: 401,
@@ -301,7 +301,7 @@ export default class DBService {
         );
         if (!passwordMatch) {
           return {
-            message: "Invalid password",
+            message: "Invalid email or password",
             data: null,
             error: true,
             statusCode: 401,
