@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import type { Route } from "../pages/+types/home";
+import userStore from "~/store";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Login - SessionFlow" }];
@@ -7,6 +8,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function () {
   const [err, setErr] = useState<string | null>(null);
+  const setToken = userStore((s) => s.setToken);
   const form = useRef<HTMLFormElement>(undefined);
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -24,7 +26,9 @@ export default function () {
       .then((response) => {
         if (response.ok) {
           return response.json().then((data) => {
-            localStorage.setItem("token", data.data.token);
+            // localStorage.setItem("token", data.data.token);
+            console.log("Login successful, token:", data.data.token);
+            setToken(data.data.token);
             window.location.href = "/dashboard";
           });
         } else {

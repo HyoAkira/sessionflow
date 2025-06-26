@@ -1,8 +1,5 @@
-// live user count
-// visit report
-
 import Tracker from "./tracker";
 
-const tracker = new Tracker("http://localhost:3000")
-  .fastStart()
-  .startTracking();
+//@ts-ignore
+const url = API_URL;
+const tracker = new Tracker(url).fastStart().startTracking();

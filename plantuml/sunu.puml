@@ -3,7 +3,7 @@
 skinparam dpi 300
 
 
-node "CookieChef" {
+node "SessionFlow" {
 
 node "BACK-END" {
     [ EXPRESS API]
@@ -12,11 +12,11 @@ node "BACK-END" {
     database "MongoDB"
 }
 frame "FRONT-END" {
-        [CookieChef Vite (React) App]
+        [SessionFlow Vite (React) App]
 }
 node "Tracking Code" {
  folder "Tracking Code" {
-        [CookieChef Tracking Code]
+        [SessionFlow Tracking Code]
         [ESBUILD]
     }
 }

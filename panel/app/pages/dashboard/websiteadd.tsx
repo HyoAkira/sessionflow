@@ -1,9 +1,88 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import userStore from "~/store";
+import type { TUser } from "../../../../restServer/schemas/user.schema";
+import { Link, Navigate } from "react-router";
 
 export default function () {
-  const [hidden, setHidden] = useState(true);
+  const [hidden, setHidden] = useState(false);
   const [error, setError] = useState("");
+  const token = userStore((s) => s.token);
   const userURL = useRef<string>("");
+  const setToken = userStore((s) => s.setToken);
+  const [user, setUser] = useState<TUser | null>(null);
+  const [redirect, setRedirect] = useState(false);
+  const [websiteCode, setWebsiteCode] = useState("");
+  const [initialLoad, setInitialLoad] = useState(true);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const [copySuccess, setCopySuccess] = useState("");
+
+  function handleCopy() {
+    if (textAreaRef.current) {
+      textAreaRef.current.select();
+      document.execCommand("copy");
+      setCopySuccess("Code copied to clipboard!");
+
+      setTimeout(() => {
+        setCopySuccess("");
+      }, 2000);
+    }
+  }
+  function handleDownload() {
+    const element = document.createElement("a");
+    const file = new Blob(
+      [
+        `// SessionFlow Tracking Script\n\n${websiteCode}\n\n// End SessionFlow Tracking Script`,
+      ],
+      { type: "text/javascript" }
+    );
+    element.href = URL.createObjectURL(file);
+    element.download = "sessionflow-tracker.js";
+    document.body.appendChild(element); // Firefox için gerekli
+    element.click();
+    document.body.removeChild(element);
+  }
+  useEffect(() => {
+    // initial load ile ilk giris bounce edilir
+    if (initialLoad) {
+      setInitialLoad(false);
+      return;
+    }
+    if (!token) {
+      console.error("No token found, redirecting to login.");
+      setRedirect(true);
+    }
+    if (token) {
+      console.log("Fetching user data with token:", token);
+      fetch("http://localhost:3000/api/getuser", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.error) {
+            console.error("Error fetching user data:", data.message);
+            setToken("");
+            setRedirect(true);
+          } else {
+            console.log("User data fetched successfully:", data.data);
+            setUser(data.data);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to fetch user data:", err);
+          setToken("");
+          setRedirect(true);
+        });
+    }
+
+    return () => {};
+  }, [token]);
+  if (redirect) {
+    return <Navigate to="/login" replace />;
+  }
+
   //@ts-ignore
   function addWebsite(e: FormEvent) {
     e.preventDefault();
@@ -12,16 +91,67 @@ export default function () {
 
     const websiteName = formData.get("website-name");
     const websiteUrl = formData.get("website-url");
+    userURL.current = websiteUrl as string;
     setHidden(!hidden);
-    console.log({ websiteName, websiteUrl });
+
+    fetch("http://localhost:3000/api/getwebsitecode", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        name: websiteName,
+        websiteURL: userURL.current,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          console.error("Error adding website:", data.message);
+          setError(data.message);
+        } else {
+          console.log("Website added successfully:", data.data);
+          setWebsiteCode(data.data.code);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to add website:", err);
+        setError("Failed to add website");
+      });
+
+    if (!error) {
+      fetch("http://localhost:3000/api/addsite", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: websiteName,
+          websiteURL: userURL.current,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.error) {
+            console.error("Error adding site:", data.message);
+            setError(data.message);
+          } else {
+            console.log("Site added successfully:", data.message);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to add site:", err);
+          setError("Failed to add site");
+        });
+    }
   }
 
-  //@ts-ignore
-  function testScript(e: MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    console.log(userURL.current);
-    setError("Sonra eklenecek.");
-  }
+  // //@ts-ignore
+  // function testScript(e: MouseEvent<HTMLButtonElement>) {
+  //   e.preventDefault();
+  // }
 
   return (
     <div
@@ -30,7 +160,7 @@ export default function () {
       <div
         id="header"
         className="mx-auto my-4 text-4xl font-bold bg-base-200 w-full text-center py-2">
-        <div>CookieChef</div>
+        <div>SessionFlow</div>
       </div>
       <div
         id="form"
@@ -68,18 +198,13 @@ export default function () {
         }`}>
         <textarea
           readOnly
-          defaultValue={`
-            <!-- CookieChef Code -->
-<script type="text/javascript">
+          ref={textAreaRef}
+          value={`
+            <!-- SessionFlow Code -->
 
-  (function() {
-    var u="//{$cookieChefURL}/";
+${websiteCode}
 
-    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-    g.type='text/javascript'; g.async=true; g.src=u+'cookiechef.js'; s.parentNode.insertBefore(g,s);
-  })();
-</script>
-<!-- End CookieChef Code -->
+<!-- End SessionFlow Code -->
     
             `}
           className="mt-8 p-2 rounded bg-base-100 w-full h-96 overflow-y-scroll"></textarea>
@@ -88,19 +213,23 @@ export default function () {
             type="url"
             id="user-url"
             name="user-url"
-            placeholder="Enter a URL"
+            value={userURL.current || "Enter your website URL"}
             onChange={(e) => {
               userURL.current = e.target.value;
             }}
             className="p-2 rounded bg-base-100 w-2/3"
           />
-          <button
-            className="btn btn-secondary bg-secondary/70"
-            onClick={testScript}
-            type="submit">
-            Test Script
-          </button>
         </div>
+        <button className="btn btn-primary" onClick={handleCopy}>
+          Copy Code
+        </button>
+
+        <div className={`text-green-500 mt-2 ${copySuccess ? "" : "hidden"}`}>
+          {copySuccess}
+        </div>
+        <button className="btn btn-success" onClick={handleDownload}>
+          Download Code
+        </button>
         <div
           className={`bg-secondary/70 px-5 rounded py-2 italic ${
             error ? "" : "hidden"
@@ -109,6 +238,9 @@ export default function () {
           <br />
           {error}
         </div>
+        <a href={"/dashboard/"} className="btn btn-secondary">
+          Dashboard
+        </a>
       </div>
     </div>
   );

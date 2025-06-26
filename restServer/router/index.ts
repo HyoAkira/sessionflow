@@ -5,6 +5,8 @@ import SocketService from "../services/socket";
 import { TUser } from "../schemas/user.schema";
 import jwt from "jsonwebtoken";
 import config from "../config.json";
+import { exec } from "child_process";
+import { resolve } from "path";
 const router = Router();
 // -- socket yapisina gecti
 // router.post("/userclientdata", userclientdataMiddleware, async (req, res) => {
@@ -191,6 +193,129 @@ router.get("/auth", async (req, res, next) => {
   }
 });
 
+router.get("/getuser", guard, async (req, res, next) => {
+  const userID = res.locals.user.userID;
+  if (!userID) {
+    next({
+      message: "User ID not found in token",
+      code: 401,
+      error: true,
+    });
+    return;
+  }
+  const user = await DBService.userGetById({ userID });
+  if (user.error) {
+    next({
+      ...user,
+    });
+  } else {
+    res.status(200).json({
+      ...user,
+    });
+  }
+});
+
+router.post("/getwebsitecode", guard, async (req, res, next) => {
+  const { websiteURL } = req.body;
+  if (!websiteURL) {
+    next({
+      message: "Website URL is required",
+      error: true,
+      code: 400,
+    });
+    return;
+  }
+
+  try {
+    const userID = res.locals.user.userID;
+    const bundlerpath = resolve(
+      __dirname,
+      "../../trackerCode/bundler/bundler2.js"
+    );
+    const options = {
+      cwd: resolve(__dirname, "../../trackerCode/bundler"),
+    };
+
+    exec(
+      `TRACKER_URL="${websiteURL}" node ${bundlerpath}`,
+      options,
+      (error, stdout, stderr) => {
+        if (error) {
+          console.error("Error executing command:", error);
+          next({
+            message: "Error generating site code",
+            error: true,
+            code: 500,
+            details: error.message,
+          });
+          return;
+        }
+        res.status(200).json({
+          message: "Site code generated successfully",
+          error: false,
+          data: { code: stdout.trim() },
+        });
+      }
+    );
+  } catch (error) {
+    next({
+      message: "Error executing command",
+      error: true,
+      code: 500,
+      details: error.message,
+    });
+  }
+});
+router.get("/getsites", guard, async (req, res, next) => {
+  const userID = res.locals.user.userID;
+
+  const sites = await DBService.getAllSites({ userID });
+  if (sites.error) {
+    next({
+      ...sites,
+    });
+  } else {
+    res.status(200).json({
+      ...sites,
+    });
+  }
+});
+router.post("/addsite", guard, async (req, res, next) => {
+  const { name, websiteURL } = req.body;
+  const userID = res.locals.user.userID;
+  if (!name || !websiteURL) {
+    next({
+      message: "Name and website URL are required",
+      error: true,
+      code: 400,
+    });
+    return;
+  }
+
+  const addSiteResult = await DBService.siteCreate({
+    userID,
+    siteName: name,
+    siteURL: websiteURL,
+  });
+  if (!addSiteResult) {
+    next({
+      message: "Failed to add site",
+      error: true,
+      code: 500,
+    });
+    return;
+  }
+  if (addSiteResult.error) {
+    next({
+      ...addSiteResult,
+    });
+  } else {
+    res.status(201).json({
+      message: "Site added successfully",
+      error: false,
+    });
+  }
+});
 export default router;
 
 async function guard(req, res, next) {
@@ -212,6 +337,15 @@ async function guard(req, res, next) {
     );
 
     res.locals.user = decoded;
+    const userID = res.locals.user.userID;
+    if (!userID) {
+      next({
+        message: "User ID not found in token",
+        code: 401,
+        error: true,
+      });
+      return;
+    }
     next();
   } catch (error) {
     console.log("JWT verification error:", error);

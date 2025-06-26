@@ -50,7 +50,7 @@ export default function () {
   return (
     <main className="flex flex-col bg-base-300 h-screen">
       <div className="mx-auto my-auto bg-base-200 p-15 rounded-2xl">
-        <div className="font-bold text-4xl mb-12 text-center">CookieChef</div>
+        <div className="font-bold text-4xl mb-12 text-center">SessionFlow</div>
         <form
           className="flex flex-col gap-6"
           //@ts-ignore

@@ -237,6 +237,42 @@ export default class DBService {
       };
     }
   }
+
+  static async userGetById(data: Partial<TUser>) {
+    try {
+      const user = await User.findOne({ userID: data.userID });
+      if (user) {
+        return {
+          message: "User retrieved successfully",
+          data: {
+            userID: user.userID,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            password: undefined,
+            __v: undefined,
+            _id: undefined,
+          },
+          error: false,
+        };
+      } else {
+        return {
+          message: "User not found",
+          data: null,
+          error: true,
+          statusCode: 404,
+        };
+      }
+    } catch (error) {
+      console.error("Error retrieving user:", error);
+      return {
+        message: "Failed to retrieve user",
+        data: null,
+        error: true,
+      };
+    }
+  }
+
   static async userGet(data: Partial<TUser>) {
     try {
       const user = await User.findOne({
@@ -325,11 +361,31 @@ export default class DBService {
     }
   }
 
-  static async siteCreate(data: TSite) {
+  static async getAllSites(data: Partial<TSite>) {
     try {
-      const site = await Site.findOne({
-        siteID: data.siteID,
-      });
+      const sites = await Site.find(
+        { userID: data.userID },
+        { __v: 0, _id: 0 }
+      );
+      return {
+        message: "Sites retrieved successfully",
+        data: sites,
+        error: false,
+      };
+    } catch (error) {
+      console.error("Error retrieving sites:", error);
+      return {
+        message: "Failed to retrieve sites",
+        data: null,
+        error: true,
+      };
+    }
+  }
+
+  static async siteCreate(data: Partial<TSite>) {
+    try {
+      const site = await Site.findOne({ siteID: data.siteID });
+
       if (site && site.userID !== data.userID) {
         return {
           message: "Site already exists for another user",
@@ -337,20 +393,42 @@ export default class DBService {
           error: true,
           statusCode: 409, // Conflict
         };
-      } else if (site) {
-        if (data.siteID) {
-          await Site.findOneAndUpdate({ siteID: data.siteID }, { ...data });
-        } else {
-          await Site.create(data);
-        }
+      }
+
+      if (site && site.userID === data.userID) {
+        await Site.findOneAndUpdate({ siteID: data.siteID }, { ...data });
         return {
           message: "Site updated successfully",
           data: null,
           error: false,
         };
       }
-    } catch (error) {}
+
+      // Eğer site yoksa yeni site oluştur
+      await Site.create(data);
+      return {
+        message: "Site created successfully",
+        data: null,
+        error: false,
+      };
+    } catch (error) {
+      console.error("Error creating site:", error);
+      if (error.code === 11000) {
+        return {
+          message: "Site url already exists",
+          data: null,
+          error: true,
+          statusCode: 409, // Conflict
+        };
+      }
+      return {
+        message: "Failed to create site",
+        data: null,
+        error: true,
+      };
+    }
   }
+
   static async siteGet(data: TSite) {
     try {
       const site = await Site.findOne({

@@ -1,5 +1,5 @@
 export default function (err, req, res, next) {
-  err.code = err.code || 500;
+  err.code = err.code || err.statusCode || 500;
   switch (err.code) {
     case 400:
       res.status(400).json({

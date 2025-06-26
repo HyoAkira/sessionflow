@@ -1,19 +1,76 @@
-import { Link } from "react-router";
+import { Link, Navigate } from "react-router";
 import type { Route } from "../../+types/root";
+import userStore from "~/store";
+import { useEffect, useState } from "react";
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Dashboard - CookieChef" }];
+  return [{ title: "Dashboard - SessionFlow" }];
 }
 
 export default function () {
+  const [liveuserCount, setLiveUserCount] = useState(0);
+
+  const token = userStore((s) => s.token);
+  const [websites, setWebsites] = useState([]);
+  const selectedSiteID = userStore((s) => s.siteID);
+  const setSelectedSiteID = userStore((s) => s.setSiteID);
+  useEffect(() => {
+    const fetchLiveUsers = () => {
+      fetch(`http://localhost:3000/api/liveusers/${selectedSiteID}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (!data.error) {
+            setLiveUserCount(data.count);
+          }
+        })
+        .catch((err) => console.error("Failed to fetch live users:", err));
+    };
+
+    const interval = setInterval(fetchLiveUsers, 30000);
+    fetchLiveUsers(); // Initial fetch
+
+    return () => clearInterval(interval);
+  }, [selectedSiteID, token]);
+  useEffect(() => {
+    fetch("http://localhost:3000/api/getsites", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          console.error("Error fetching websites:", data.message);
+        } else {
+          console.log("Websites fetched successfully:", data.data);
+          setWebsites(data.data);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch websites:", err);
+      });
+  }, [token]);
   return (
     <div
       id="dashboard"
       className="w-full grid grid-cols-3 grid-rows-[1fr_7fr] gap-4 h-full bg-base-300 p-4">
       <div className=" bg-base-200 col-span-4  px-4 flex items-center h-12 justify-between rounded-xl">
-        <div className="text-xl  rounded-xl  italic flex-3">
-          testwebsite.com
-        </div>
+        <select
+          className="select select-bordered w-full max-w-xs"
+          value={selectedSiteID || ""}
+          onChange={(e) => setSelectedSiteID(e.target.value)}>
+          {websites.map((site: { siteID: string; siteURL: string }) => (
+            <option key={site.siteID} value={site.siteID}>
+              {site.siteURL}
+            </option>
+          ))}
+        </select>
         <details className="dropdown dropdown-left">
           <summary className="btn m-1">
             <svg
@@ -34,7 +91,7 @@ export default function () {
             tabIndex={0}
             className="dropdown-content menu bg-base-100 w-34 rounded-box z-1 p-2 shadow-sm">
             <li>
-              <Link to="/dashboard/websiteadd/"> Website Add</Link>
+              <Link to="/dashboard/websiteadd/">Add website</Link>
             </li>
             <li>
               <Link to="/dashboard/">System</Link>

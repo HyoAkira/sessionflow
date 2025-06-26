@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "bundle": "node ./bundler/index.js",
+    "bundle": "TRACKER_URL=http://localhost:3000 node ./bundler/index.js",
     "tasks": "zx ./script.mjs",
-    "serve": "pnpm run bundle &&pnpm run tasks"
+    "serve": "pnpm run bundle && pnpm run tasks"
   },
   "keywords": [],
   "author": "",
