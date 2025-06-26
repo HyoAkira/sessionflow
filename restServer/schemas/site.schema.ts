@@ -7,7 +7,7 @@ const siteSchema = new Schema(
       type: String,
       required: true,
       unique: true,
-      default: () => crypto.randomUUID(),
+      // default: () => crypto.randomUUID(),
     },
     siteName: { type: String, required: true },
     siteURL: { type: String, required: true, unique: true },

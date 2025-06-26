@@ -93,7 +93,7 @@ export default function () {
     const websiteUrl = formData.get("website-url");
     userURL.current = websiteUrl as string;
     setHidden(!hidden);
-
+    let siteID;
     fetch("http://localhost:3000/api/getwebsitecode", {
       method: "POST",
       headers: {
@@ -113,39 +113,37 @@ export default function () {
         } else {
           console.log("Website added successfully:", data.data);
           setWebsiteCode(data.data.code);
+          fetch("http://localhost:3000/api/addsite", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              name: websiteName,
+              websiteURL: userURL.current,
+              siteID: data.data.siteID,
+            }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.error) {
+                console.error("Error adding site:", data.message);
+                setError(data.message);
+              } else {
+                console.log("Site added successfully:", data.message);
+              }
+            })
+            .catch((err) => {
+              console.error("Failed to add site:", err);
+              setError("Failed to add site");
+            });
         }
       })
       .catch((err) => {
         console.error("Failed to add website:", err);
         setError("Failed to add website");
       });
-
-    if (!error) {
-      fetch("http://localhost:3000/api/addsite", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: websiteName,
-          websiteURL: userURL.current,
-        }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.error) {
-            console.error("Error adding site:", data.message);
-            setError(data.message);
-          } else {
-            console.log("Site added successfully:", data.message);
-          }
-        })
-        .catch((err) => {
-          console.error("Failed to add site:", err);
-          setError("Failed to add site");
-        });
-    }
   }
 
   // //@ts-ignore

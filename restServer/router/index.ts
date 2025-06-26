@@ -253,7 +253,7 @@ router.post("/getwebsitecode", guard, async (req, res, next) => {
         res.status(200).json({
           message: "Site code generated successfully",
           error: false,
-          data: { code: stdout.trim() },
+          data: { code: stdout.trim(), siteID: crypto.randomUUID() },
         });
       }
     );
@@ -281,9 +281,9 @@ router.get("/getsites", guard, async (req, res, next) => {
   }
 });
 router.post("/addsite", guard, async (req, res, next) => {
-  const { name, websiteURL } = req.body;
+  const { name, websiteURL, siteID } = req.body;
   const userID = res.locals.user.userID;
-  if (!name || !websiteURL) {
+  if (!name || !websiteURL || !siteID) {
     next({
       message: "Name and website URL are required",
       error: true,
@@ -296,6 +296,7 @@ router.post("/addsite", guard, async (req, res, next) => {
     userID,
     siteName: name,
     siteURL: websiteURL,
+    siteID,
   });
   if (!addSiteResult) {
     next({
