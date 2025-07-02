@@ -2,4 +2,6 @@ import Tracker from "./tracker";
 
 //@ts-ignore
 const url = API_URL;
-const tracker = new Tracker(url).fastStart().startTracking();
+//@ts-ignore
+const siteID = SITE_ID;
+const tracker = new Tracker(url, siteID).fastStart().startTracking();

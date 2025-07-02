@@ -235,9 +235,9 @@ router.post("/getwebsitecode", guard, async (req, res, next) => {
     const options = {
       cwd: resolve(__dirname, "../../trackerCode/bundler"),
     };
-
+    const siteID = crypto.randomUUID();
     exec(
-      `TRACKER_URL="${websiteURL}" node ${bundlerpath}`,
+      `TRACKER_URL="${websiteURL}" SITE_ID="${siteID}" node ${bundlerpath}`,
       options,
       (error, stdout, stderr) => {
         if (error) {
@@ -253,7 +253,7 @@ router.post("/getwebsitecode", guard, async (req, res, next) => {
         res.status(200).json({
           message: "Site code generated successfully",
           error: false,
-          data: { code: stdout.trim(), siteID: crypto.randomUUID() },
+          data: { code: stdout.trim(), siteID },
         });
       }
     );

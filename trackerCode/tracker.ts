@@ -3,6 +3,7 @@ import FormService from "./formService";
 
 type UserData = {
   sessionID: string;
+  siteID: string;
   // clicks: { x: number; y: number; time: number }[];
   clicks: number;
   // scrolls: { y: number; x: number; time: number }[];
@@ -70,7 +71,7 @@ class Tracker extends fundementalEvents {
   private serverConf = {
     url: "",
   };
-  constructor(url) {
+  constructor(url, siteID) {
     super();
     const localData: UserData = JSON.parse(
       localStorage.getItem("userData") || "{}"
@@ -79,6 +80,7 @@ class Tracker extends fundementalEvents {
     this.socket = io(url, { auth: { token: localStorage.getItem("cktoken") } });
     // this.serverConf.url = url || "http://localhost:3000/api/";
     this.userData = {
+      siteID,
       sessionID: localData.sessionID || crypto.randomUUID(),
       clicks: localData.clicks || 0,
       // scrolls: localData.scrolls || [],
@@ -96,8 +98,6 @@ class Tracker extends fundementalEvents {
         this.userData = cb.data;
       }
     });
-
-    this.socket.emit("test1", "test");
   }
   socketConnectionHandler() {
     this.socket.on("connect", () => {
@@ -138,6 +138,7 @@ class Tracker extends fundementalEvents {
         if (parsedSession.sessionDuration > 3600000) {
           localStorage.removeItem("userData");
           this.userData = {
+            siteID: parsedSession.siteID,
             sessionID: crypto.randomUUID(),
             clicks: 0,
             // scrolls: [],
