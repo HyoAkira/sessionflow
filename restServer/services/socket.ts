@@ -20,10 +20,10 @@ class SocketService {
     this.io = io;
 
     // Timer burada başlatılır
-    setInterval(() => {
-      SocketService.liveUserCount = this.liveUserCount;
-      this.io.emit("liveUserCount", this.liveUserCount);
-    }, 5);
+    // setInterval(() => {
+    //   SocketService.liveUserCount = this.liveUserCount;
+    //   this.io.emit("liveUserCount", this.liveUserCount);
+    // }, 5);
 
     return this;
   }
@@ -34,14 +34,22 @@ class SocketService {
     }
 
     this.io.on("connection", (socket: Socket) => {
+      const siteID = socket.handshake.query.siteID as string;
       this.liveUserCount++;
+
       console.info(`New connection: ${socket.id}`);
-      this.io.emit("liveUserCount", this.liveUserCount);
+      this.io.emit("liveUserCount", {
+        liveUserCount: this.liveUserCount,
+        siteID,
+      });
 
       socket.on("disconnect", () => {
         this.liveUserCount--;
         console.info(`Disconnected: ${socket.id}`);
-        this.io.emit("liveUserCount", this.liveUserCount);
+        this.io.emit("liveUserCount", {
+          liveUserCount: this.liveUserCount,
+          siteID,
+        });
       });
 
       socket.on("userData", async (data, callback) => {

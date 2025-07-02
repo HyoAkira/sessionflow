@@ -68,6 +68,7 @@ class fundementalEvents {
 class Tracker extends fundementalEvents {
   private socket: Socket;
   protected userData: UserData;
+
   private serverConf = {
     url: "",
   };
@@ -77,7 +78,10 @@ class Tracker extends fundementalEvents {
       localStorage.getItem("userData") || "{}"
     );
 
-    this.socket = io(url, { auth: { token: localStorage.getItem("cktoken") } });
+    this.socket = io(url, {
+      auth: { token: localStorage.getItem("cktoken") },
+      query: { siteID },
+    });
     // this.serverConf.url = url || "http://localhost:3000/api/";
     this.userData = {
       siteID,
