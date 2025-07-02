@@ -2,7 +2,7 @@ const esbuild = require("esbuild");
 const path = require("path");
 
 const trackerUrl = process.env.TRACKER_URL;
-
+const siteID = process.env.SITE_ID;
 if (!trackerUrl) {
     console.error("TRACKER_URL is not defined");
     process.exit(1);
@@ -25,6 +25,7 @@ esbuild
         },
         define: {
             API_URL: `"${trackerUrl}"`,
+            SITE_ID: `"${siteID}"`,
         },
     })
     .then((result) => {

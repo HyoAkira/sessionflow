@@ -50,6 +50,12 @@ export default function () {
 
     return () => {};
   }, [token]);
+
+  function handleLogout() {
+    setToken("");
+    setRedirect(true);
+  }
+
   if (redirect) {
     return <Navigate to="/login" replace />;
   }
@@ -94,10 +100,10 @@ export default function () {
               tabIndex={0}
               className="dropdown-content menu bg-base-100 w-34 rounded-box z-1 p-2 shadow-sm">
               <li>
-                <Link to="/dashboard/">Settings</Link>
+                <Link to="/dashboard/settings">Settings</Link>
               </li>
               <li>
-                <Link to="/dashboard/">Logout</Link>
+                <button onClick={handleLogout}>Logout</button>
               </li>
             </ul>
           </details>

@@ -67,7 +67,6 @@ def kmeans_linear_shopping(df):
                         f'{self.value_column}_slope': slope,
                         f'{self.value_column}_trend': trend
                     })
-
                 return pd.DataFrame(results)
 
 

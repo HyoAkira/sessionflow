@@ -24,7 +24,7 @@ const router = Router();
 //   });
 // });
 
-router.get("/liveusercount", (req, res) => {
+router.get("/liveusers", (req, res) => {
   const liveUserCount = SocketService.liveUserCount;
   res.status(200).json({
     message: "Live user count retrieved successfully",
@@ -130,6 +130,46 @@ router.post("/usercreate", async (req, res, next) => {
   } else {
     res.status(201).json({
       ...userCreateResult,
+    });
+  }
+});
+
+router.post("/userupdate", guard, async (req, res, next) => {
+  const { email, password, firstName, lastName }: TUser = req.body;
+
+  const userID = res.locals.user.userID;
+  const data = {
+    userID,
+    email,
+    password,
+    firstName,
+    lastName,
+  };
+
+  //@ts-ignore
+  const userCreateResult = await DBService.userCreate(data);
+  if (userCreateResult.error) {
+    next({
+      ...userCreateResult,
+    });
+    return;
+  } else {
+    res.status(201).json({
+      ...userCreateResult,
+    });
+  }
+});
+router.post("/userdelete", guard, async (req, res, next) => {
+  const userID = res.locals.user.userID;
+  const result = await DBService.userDelete(userID);
+  if (result.error) {
+    next({
+      ...result,
+    });
+    return;
+  } else {
+    res.status(200).json({
+      ...result,
     });
   }
 });

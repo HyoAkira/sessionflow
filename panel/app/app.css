@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui"{
-  themes: light, dark --prefersdark, cupcake --default;
+  themes: all;
 }
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,

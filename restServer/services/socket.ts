@@ -7,6 +7,9 @@ class SocketService {
   private io: Server;
   private liveUserCount = 0;
   public static liveUserCount = 0;
+
+  public static liveUserConn = new Map<string, number>();
+
   private constructor() {}
 
   public static getInstance(): SocketService {
@@ -38,6 +41,7 @@ class SocketService {
       this.liveUserCount++;
 
       console.info(`New connection: ${socket.id}`);
+      SocketService.liveUserConn.set(siteID, this.liveUserCount);
       this.io.emit("liveUserCount", {
         liveUserCount: this.liveUserCount,
         siteID,
@@ -46,6 +50,7 @@ class SocketService {
       socket.on("disconnect", () => {
         this.liveUserCount--;
         console.info(`Disconnected: ${socket.id}`);
+        SocketService.liveUserConn.set(siteID, this.liveUserCount);
         this.io.emit("liveUserCount", {
           liveUserCount: this.liveUserCount,
           siteID,

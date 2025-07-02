@@ -222,7 +222,8 @@ ${websiteCode}
           Copy Code
         </button>
 
-        <div className={`text-green-500 mt-2 ${copySuccess ? "" : "hidden"}`}>
+        <div
+          className={`text-base-content mt-2 ${copySuccess ? "" : "hidden"}`}>
           {copySuccess}
         </div>
         <button className="btn btn-success" onClick={handleDownload}>

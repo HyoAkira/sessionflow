@@ -69,7 +69,8 @@ async def shoppingBehavior():
     df = dbs.retrieve_data(process=False)
     try:
         result = kmeans_linear_shopping(df)
-        return jsonify(result), 200
+       
+        return jsonify(result), 200 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

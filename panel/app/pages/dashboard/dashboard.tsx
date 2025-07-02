@@ -16,7 +16,7 @@ export default function () {
   const setSelectedSiteID = userStore((s) => s.setSiteID);
   useEffect(() => {
     const fetchLiveUsers = () => {
-      fetch(`http://localhost:3000/api/liveusers/${selectedSiteID}`, {
+      fetch(`http://localhost:3000/api/liveusers?siteid=${selectedSiteID}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -56,6 +56,17 @@ export default function () {
         console.error("Failed to fetch websites:", err);
       });
   }, [token]);
+
+  if (websites.length == 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <h1 className="text-2xl font-bold mb-4">No websites found</h1>
+        <Link to="/dashboard/websiteadd/" className="btn btn-primary">
+          Add a website
+        </Link>
+      </div>
+    );
+  }
   return (
     <div
       id="dashboard"
@@ -120,7 +131,6 @@ export default function () {
         </div>
         <div className="mt-2">10,331 visits, 9,356 unique visitors -5.9%</div>
       </div>
-      <div></div>
     </div>
   );
 }

@@ -207,19 +207,28 @@ export default class DBService {
 
   static async userCreate(data: TUser) {
     try {
-      data.password = await bcryptService.hashPassword(data.password);
-
+      if (data.password) {
+        data.password = await bcryptService.hashPassword(data.password);
+      }
       if (data.userID) {
         await User.findOneAndUpdate({ userID: data.userID }, data);
+        return {
+          message: "User updated successfully",
+          data: {
+            email: data.email,
+            firstName: data.firstName,
+            lastName: data.lastName,
+          },
+          error: false,
+        };
       } else {
         await User.create(data);
+        return {
+          message: "User created successfully",
+
+          error: false,
+        };
       }
-
-      return {
-        message: "User created successfully",
-
-        error: false,
-      };
     } catch (error) {
       console.error("Error creating user:", error);
       if (error.code === 11000) {
@@ -318,10 +327,10 @@ export default class DBService {
     }
   }
 
-  static async userDelete(data: TUser) {
+  static async userDelete(userID) {
     try {
       const user = await User.findOne({
-        email: data.email,
+        userID,
       });
       if (!user) {
         return {
@@ -331,25 +340,12 @@ export default class DBService {
           statusCode: 404,
         };
       } else {
-        const passwordMatch = await bcryptService.comparePassword(
-          data.password,
-          user.password
-        );
-        if (!passwordMatch) {
-          return {
-            message: "Invalid email or password",
-            data: null,
-            error: true,
-            statusCode: 401,
-          };
-        } else {
-          // await user.deleteOne();
-          return {
-            message: "User deleted successfully",
-            data: null,
-            error: false,
-          };
-        }
+        await user.deleteOne();
+        return {
+          message: "User deleted successfully",
+          data: null,
+          error: false,
+        };
       }
     } catch (error) {
       console.error("Error deleting user:", error);
