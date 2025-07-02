@@ -257,8 +257,10 @@ class Tracker extends fundementalEvents {
         !FormService.FormData.gender &&
         !FormService.FormData.min_price &&
         !FormService.FormData.max_price
-      )
+      ) {
+        console.log("Form data is empty, skipping save.");
         return;
+      }
       this.socket.emit("formData", FormService.FormData, (cb) => {
         if (cb.error) {
           console.error("Error saving form data to server:", cb.message);

@@ -24,8 +24,23 @@ const router = Router();
 //   });
 // });
 
-router.get("/liveusers", (req, res) => {
-  const liveUserCount = SocketService.liveUserCount;
+const siteIDMiddleware = (req, res, next) => {
+  const { siteid } = req.query;
+  if (!siteid) {
+    next({
+      message: "Site ID is required",
+      error: true,
+    });
+  } else {
+    res.locals.siteid = siteid;
+    next();
+  }
+};
+
+router.get("/liveusers", siteIDMiddleware, (req, res) => {
+  const liveUserCount = SocketService.liveUserConn.get(
+    res.locals.siteid as string
+  );
   res.status(200).json({
     message: "Live user count retrieved successfully",
     error: false,
@@ -33,7 +48,7 @@ router.get("/liveusers", (req, res) => {
   });
 });
 
-router.get("/sessionreports", async (req, res, next) => {
+router.get("/sessionreports", siteIDMiddleware, async (req, res, next) => {
   const visitReports = await DBService.getAllSessions();
   if (visitReports.error) {
     next({
@@ -46,7 +61,7 @@ router.get("/sessionreports", async (req, res, next) => {
   }
 });
 
-router.get("/dailysessionsreport", async (req, res, next) => {
+router.get("/dailysessionsreport", siteIDMiddleware, async (req, res, next) => {
   const dailySessionsReport = await DBService.getSessionsByRange("daily");
   if (dailySessionsReport.error) {
     next({
@@ -59,31 +74,39 @@ router.get("/dailysessionsreport", async (req, res, next) => {
   }
 });
 
-router.get("/weeklysessionsreport", async (req, res, next) => {
-  const weeklySessionsReport = await DBService.getSessionsByRange("weekly");
-  if (weeklySessionsReport.error) {
-    next({
-      ...weeklySessionsReport,
-    });
-  } else {
-    res.status(200).json({
-      ...weeklySessionsReport,
-    });
+router.get(
+  "/weeklysessionsreport",
+  siteIDMiddleware,
+  async (req, res, next) => {
+    const weeklySessionsReport = await DBService.getSessionsByRange("weekly");
+    if (weeklySessionsReport.error) {
+      next({
+        ...weeklySessionsReport,
+      });
+    } else {
+      res.status(200).json({
+        ...weeklySessionsReport,
+      });
+    }
   }
-});
-router.get("/monthlysessionsreport", async (req, res, next) => {
-  const monthlySessionsReport = await DBService.getSessionsByRange("monthly");
-  if (monthlySessionsReport.error) {
-    next({
-      ...monthlySessionsReport,
-    });
-  } else {
-    res.status(200).json({
-      ...monthlySessionsReport,
-    });
+);
+router.get(
+  "/monthlysessionsreport",
+  siteIDMiddleware,
+  async (req, res, next) => {
+    const monthlySessionsReport = await DBService.getSessionsByRange("monthly");
+    if (monthlySessionsReport.error) {
+      next({
+        ...monthlySessionsReport,
+      });
+    } else {
+      res.status(200).json({
+        ...monthlySessionsReport,
+      });
+    }
   }
-});
-router.get("/rangesessionsreport", async (req, res, next) => {
+);
+router.get("/rangesessionsreport", siteIDMiddleware, async (req, res, next) => {
   const { start, end } = req.query;
   const startDate = new Date(start as string) || null;
   const endDate = new Date(end as string) || null;

@@ -9,16 +9,25 @@ from sklearn.compose import ColumnTransformer
 from sklearn.cluster import KMeans
 
 def kmeans_linear_shopping(df):
-    df['max_price'] = df['max_price'].fillna(df['max_price'].median())
-    df['min_price'] = df['min_price'].fillna(df['min_price'].median())
-    df['gender'] = df['gender'].fillna("NULL")
-    df['message'] = df['message'].fillna("NULL")
-    df['comment'] = df['comment'].fillna("NULL")
-    df['deviceType'] = df['deviceType'].fillna("NULL")
-    df['categories'] = df['categories'].fillna("NULL")
-    df['contents'] = df['contents'].fillna("NULL")
+    df = df[df["formID"].notnull()].copy()
+    if 'max_price' in df.columns:
+        df['max_price'] = df['max_price'].fillna(df['max_price'].median())
+    if 'min_price' in df.columns:
+        df['min_price'] = df['min_price'].fillna(df['min_price'].median())
+    if 'gender' in df.columns:
+        df['gender'] = df['gender'].fillna("NULL")
+    if 'message' in df.columns:
+        df['message'] = df['message'].fillna("NULL")
+    if 'comment' in df.columns:
+        df['comment'] = df['comment'].fillna("NULL")
+    if 'deviceType' in df.columns:
+        df['deviceType'] = df['deviceType'].fillna("NULL")
+    if 'categories' in df.columns:
+        df['categories'] = df['categories'].fillna("NULL")
+    if 'contents' in df.columns:
+        df['contents'] = df['contents'].fillna("NULL")
 
-
+   
     def prepare_trend_summary(df):
 
         def prepare_time_features(df):
@@ -31,7 +40,7 @@ def kmeans_linear_shopping(df):
             df['price_range'] = df['max_price'] - df['min_price']
             return df
 
-        prepare_fn = FunctionTransformer(prepare_time_features)
+    
 
 
         class TrendExtractor(BaseEstimator, TransformerMixin):
@@ -49,7 +58,7 @@ def kmeans_linear_shopping(df):
                     group = group.sort_values(self.time_column)
                     if len(group) < 2:
                         slope = 0
-                        trend = 'durağan'
+                        trend = 'stable'
                     else:
                         X_t = group[self.time_column].values.reshape(-1, 1)
                         y_t = group[self.value_column].values
@@ -77,7 +86,7 @@ def kmeans_linear_shopping(df):
         range_trend = TrendExtractor('price_range')
 
         df = df.copy()
-        df['createdAt_form'] = pd.date_range("2024-01-01", periods=len(df), freq='D')
+        
 
 
 
@@ -94,27 +103,12 @@ def kmeans_linear_shopping(df):
         trend_summary = reduce(lambda left, right: pd.merge(left, right, on='sessionID'), results)
         return trend_summary
 
-    def use_kmeans_linear():
+    def summarize_trends():
+            trend_summary = prepare_trend_summary(df)
 
-        trend_summary = prepare_trend_summary(df)
-        numerical_features = trend_summary.select_dtypes(include=['float64', 'int64']).columns
-        X = trend_summary[numerical_features].copy()
+            # Ortalama trendi baz al
+            trend_counts = trend_summary[f'avg_price_trend'].value_counts().to_dict()
 
-        kmeans = KMeans(n_clusters=3, random_state=42, n_init='auto')
-        ss = StandardScaler()
-        ohe = OneHotEncoder(handle_unknown='ignore')
-        preprocessor = ColumnTransformer(
-            transformers=[
-                ('num', ss, numerical_features)
-            ]
-        )
-        pipeline = Pipeline(steps=[
-            ('preprocessor', preprocessor),
-            ('clusterer', kmeans)
-        ])
-        trend_summary['cluster'] = pipeline.fit_predict(X)
+            return trend_counts
 
-
-        return trend_summary['cluster'].value_counts().sort_index().to_dict()
-
-    return use_kmeans_linear() 
+    return summarize_trends()
