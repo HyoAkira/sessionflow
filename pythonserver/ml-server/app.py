@@ -10,6 +10,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.cluster import KMeans 
 from sklearn.decomposition import PCA
+from collections import Counter
 
 # models
 kmeans2segment = joblib.load('./models/kmeans_2segment.pkl')
@@ -53,24 +54,31 @@ async def segment5():
     
 @app.route('/depression', methods=['POST'])    
 async def depression():
-    df = dbs.retrieve_messages_comments()
+    df = dbs.retrieve_data(process=True)
+    df = df[["comment", "message"]].copy()
  
     try:
-        result = lightgbmdepression.predict(df["text"])
-        df["predict"] = result
-        segment_json = df["predict"].value_counts().sort_index().to_dict()
-        return jsonify(segment_json), 200
+        filtered_df = df[(df["comment"] != "NULL") | (df["message"] != "NULL")]
+        texts = filtered_df["message"].replace("NULL", "").fillna("") + " " + filtered_df["comment"].replace("NULL", "").fillna("")
+        predictions = lightgbmdepression.predict(texts)
+        filtered_df["prediction"] = predictions
+
+        expected_emotions = ['fear', 'sad', 'love', 'joy', 'suprise', 'anger', 'depression']
+        counts = Counter(filtered_df["prediction"])
+        result_dict = {emotion: counts.get(emotion, 0) for emotion in expected_emotions}
+        return jsonify(result_dict), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
 
 @app.route('/shopping', methods=['POST'])    
 async def shoppingBehavior():
+    expected_fields = ["decreasing", "increasing", "stable"]
     df = dbs.retrieve_data(process=False)
     try:
         result = kmeans_linear_shopping(df)
-       
-        return jsonify(result), 200 
+        output = {field: result.get(field, 0) for field in expected_fields}
+        return jsonify(output), 200 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

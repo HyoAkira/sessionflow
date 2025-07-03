@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import config from "../config.json";
 import { exec } from "child_process";
 import { resolve } from "path";
+import { ml_server } from "../config.json";
 const router = Router();
 // -- socket yapisina gecti
 // router.post("/userclientdata", userclientdataMiddleware, async (req, res) => {
@@ -144,6 +145,18 @@ router.get("/rangesessionsreport", siteIDMiddleware, async (req, res, next) => {
   }
 });
 
+/**
+ * ML SERVER
+ */
+router.post("segment2", (req, res, next) => {});
+router.post("segment3", (req, res, next) => {});
+router.post("segment5", (req, res, next) => {});
+router.post("shopping", (req, res, next) => {});
+router.post("depression", (req, res, next) => {});
+router.post("modelreload", (req, res, next) => {});
+/**
+ * ML SERVER END
+ */
 router.post("/usercreate", async (req, res, next) => {
   const { email, password, firstName, lastName }: TUser = req.body;
   if (!email || !password || !firstName || !lastName) {
