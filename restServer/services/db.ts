@@ -101,9 +101,9 @@ export default class DBService {
     }
   }
 
-  static async getAllSessions() {
+  static async getAllSessions(siteid) {
     try {
-      const sessions = await Session.find({});
+      const sessions = await Session.find({ siteID: siteid });
       return {
         message: "Sessions retrieved successfully",
         data: sessions,
@@ -121,6 +121,7 @@ export default class DBService {
   }
 
   static async getSessionsByRange(
+    siteid,
     range?: "daily" | "weekly" | "monthly" | "",
     start?: Date,
     end?: Date
@@ -131,6 +132,7 @@ export default class DBService {
           const today = new Date(Date.now());
           today.setUTCHours(0, 0, 0, 0);
           const dailySessions = await Session.find({
+            siteID: siteid,
             createdAt: { $gte: today },
           });
           return {
@@ -151,6 +153,7 @@ export default class DBService {
           sunday.setUTCHours(23, 59, 59, 999);
           const weeklySessions = await Session.find({
             createdAt: { $gte: monday, $lte: sunday },
+            siteID: siteid,
           });
           return {
             message: "Weekly sessions retrieved successfully",
@@ -166,6 +169,7 @@ export default class DBService {
           const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
           const monthlySessions = await Session.find({
             createdAt: { $gte: start, $lte: end },
+            siteID: siteid,
           });
           return {
             message: "Monthly sessions retrieved successfully",
@@ -179,6 +183,7 @@ export default class DBService {
             end.setUTCHours(23, 59, 59, 999);
             const sessionsInRange = await Session.find({
               createdAt: { $gte: start, $lte: end },
+              siteID: siteid,
             });
             return {
               message: "Sessions in range retrieved successfully",

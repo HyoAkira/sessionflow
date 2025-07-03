@@ -49,7 +49,7 @@ router.get("/liveusers", siteIDMiddleware, (req, res) => {
 });
 
 router.get("/sessionreports", siteIDMiddleware, async (req, res, next) => {
-  const visitReports = await DBService.getAllSessions();
+  const visitReports = await DBService.getAllSessions(res.locals.siteid);
   if (visitReports.error) {
     next({
       ...visitReports,
@@ -62,7 +62,10 @@ router.get("/sessionreports", siteIDMiddleware, async (req, res, next) => {
 });
 
 router.get("/dailysessionsreport", siteIDMiddleware, async (req, res, next) => {
-  const dailySessionsReport = await DBService.getSessionsByRange("daily");
+  const dailySessionsReport = await DBService.getSessionsByRange(
+    res.locals.siteid,
+    "daily"
+  );
   if (dailySessionsReport.error) {
     next({
       ...dailySessionsReport,
@@ -78,7 +81,10 @@ router.get(
   "/weeklysessionsreport",
   siteIDMiddleware,
   async (req, res, next) => {
-    const weeklySessionsReport = await DBService.getSessionsByRange("weekly");
+    const weeklySessionsReport = await DBService.getSessionsByRange(
+      res.locals.siteid,
+      "weekly"
+    );
     if (weeklySessionsReport.error) {
       next({
         ...weeklySessionsReport,
@@ -94,7 +100,10 @@ router.get(
   "/monthlysessionsreport",
   siteIDMiddleware,
   async (req, res, next) => {
-    const monthlySessionsReport = await DBService.getSessionsByRange("monthly");
+    const monthlySessionsReport = await DBService.getSessionsByRange(
+      res.locals.siteid,
+      "monthly"
+    );
     if (monthlySessionsReport.error) {
       next({
         ...monthlySessionsReport,
@@ -119,6 +128,7 @@ router.get("/rangesessionsreport", siteIDMiddleware, async (req, res, next) => {
     return;
   }
   const monthlySessionsReport = await DBService.getSessionsByRange(
+    res.locals.siteid,
     "",
     startDate,
     endDate
