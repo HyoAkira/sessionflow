@@ -198,11 +198,11 @@ export default function () {
           readOnly
           ref={textAreaRef}
           value={`
-            <!-- SessionFlow Code -->
+            // <!-- SessionFlow Code -->
 
 ${websiteCode}
 
-<!-- End SessionFlow Code -->
+// <!-- End SessionFlow Code -->
     
             `}
           className="mt-8 p-2 rounded bg-base-100 w-full h-96 overflow-y-scroll"></textarea>
