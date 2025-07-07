@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "docker": "docker-compose up -d --build",
-    "dev": "pnpm run docker && tsx --watch index.ts"
+    "dev": "pnpm run docker && tsx --watch index.ts",
+    "dev:py": "source ../.venv/bin/activate && cd ../pythonserver/ml-server &&hypercorn app:app "
   },
   "keywords": [],
   "author": "",

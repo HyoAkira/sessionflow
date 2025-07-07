@@ -75,17 +75,11 @@ export default function () {
           <Link to="/dashboard/" className="navbarElement">
             Home
           </Link>
-          <Link to="/dashboard/reports" className="navbarElement">
-            Reports
-          </Link>
           <Link to="/dashboard/detailedreports" className="navbarElement">
             Detailed Reports
           </Link>
           <Link to="/dashboard/visitreports" className="navbarElement">
             Visit Reports
-          </Link>
-          <Link to="/dashboard/customerreports" className="navbarElement">
-            Customer Reports
           </Link>
         </div>
         <div className="bg-base-100 min-h-12 p-4 flex justify-between items-center">

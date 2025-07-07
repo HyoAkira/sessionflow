@@ -151,8 +151,6 @@ export default function DetailedReports() {
               <th>Desktop %</th>
               <th>Tablet %</th>
               <th>Focus Loss</th>
-              <th>Gender (M) %</th> {/* Add this column */}
-              <th>Unknown Gender %</th> {/* Add this column */}
               <th>Price Range</th>
               <th>Page Duration</th>
               <th>Session Duration</th>
@@ -166,8 +164,6 @@ export default function DetailedReports() {
                 <td>{segment.deviceType_desktop.toFixed(2)}%</td>
                 <td>{segment.deviceType_tablet.toFixed(2)}%</td>
                 <td>{segment.focusLossCount.toFixed(2)}</td>
-                <td>{segment.gender_true.toFixed(2)}%</td> {/* Add this cell */}
-                <td>{segment.gender_NULL.toFixed(2)}%</td> {/* Add this cell */}
                 <td>
                   ${segment.min_price.toFixed(2)} - $
                   {segment.max_price.toFixed(2)}
