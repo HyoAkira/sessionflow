@@ -8,6 +8,8 @@ await $`cp ./dist/bundle.js ../www/web/script.js`;
 
 switch (arg) {
 
+
+
     case 'serial':
 
         await $`pnpm run bundle`;

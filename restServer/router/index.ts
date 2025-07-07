@@ -148,12 +148,131 @@ router.get("/rangesessionsreport", siteIDMiddleware, async (req, res, next) => {
 /**
  * ML SERVER
  */
-router.post("segment2", (req, res, next) => {});
-router.post("segment3", (req, res, next) => {});
-router.post("segment5", (req, res, next) => {});
-router.post("shopping", (req, res, next) => {});
-router.post("depression", (req, res, next) => {});
-router.post("modelreload", (req, res, next) => {});
+router.post("/segment2", guard, async (req, res, next) => {
+  try {
+    const response = await fetch(`${ml_server.serverurl}/segment2`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(req.body),
+    });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    next({
+      message: "Error proxying to ML server",
+      error: true,
+      details: error.message,
+    });
+  }
+});
+
+router.post("/segment3", guard, async (req, res, next) => {
+  try {
+    const response = await fetch(`${ml_server.serverurl}/segment3`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(req.body),
+    });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    next({
+      message: "Error proxying to ML server",
+      error: true,
+      details: error.message,
+    });
+  }
+});
+
+router.post("/segment5", guard, async (req, res, next) => {
+  try {
+    const response = await fetch(`${ml_server.serverurl}/segment5`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(req.body),
+    });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    next({
+      message: "Error proxying to ML server",
+      error: true,
+      details: error.message,
+    });
+  }
+});
+
+router.post("/shopping", guard, async (req, res, next) => {
+  try {
+    const response = await fetch(`${ml_server.serverurl}/shopping`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(req.body),
+    });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    next({
+      message: "Error proxying to ML server",
+      error: true,
+      details: error.message,
+    });
+  }
+});
+
+router.post("/depression", guard, async (req, res, next) => {
+  try {
+    const response = await fetch(`${ml_server.serverurl}/depression`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(req.body),
+    });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    next({
+      message: "Error proxying to ML server",
+      error: true,
+      details: error.message,
+    });
+  }
+});
+
+router.post("/modelreload", guard, async (req, res, next) => {
+  try {
+    const response = await fetch(`${ml_server.serverurl}/modelreload`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(req.body),
+    });
+
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    next({
+      message: "Error proxying to ML server",
+      error: true,
+      details: error.message,
+    });
+  }
+});
 /**
  * ML SERVER END
  */

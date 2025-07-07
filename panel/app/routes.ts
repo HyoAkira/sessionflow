@@ -11,6 +11,7 @@ export default [
     children: [
       index("pages/dashboard/dashboard.tsx"),
       route("visitreports", "pages/dashboard/visitreports.tsx"),
+      route("detailedreports", "pages/dashboard/detailedreports.tsx"),
       route("settings", "pages/dashboard/settings.tsx"),
     ],
   },
