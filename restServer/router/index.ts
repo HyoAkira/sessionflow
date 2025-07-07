@@ -471,6 +471,70 @@ router.post("/getwebsitecode", guard, async (req, res, next) => {
     });
   }
 });
+router.post("/regeneratewebsitecode", guard, async (req, res, next) => {
+  const { siteID } = req.body;
+  const userID = res.locals.user.userID;
+
+  if (!siteID) {
+    next({
+      message: "Site ID is required",
+      error: true,
+      code: 400,
+    });
+    return;
+  }
+
+  try {
+    // First, verify the site belongs to the user
+    const siteResult = await DBService.siteGet({ siteID, userID });
+    if (siteResult.error) {
+      next({
+        message: "Site not found or access denied",
+        error: true,
+        code: 404,
+      });
+      return;
+    }
+
+    const site = siteResult.data;
+    const bundlerpath = resolve(
+      __dirname,
+      "../../trackerCode/bundler/bundler2.js"
+    );
+    const options = {
+      cwd: resolve(__dirname, "../../trackerCode/bundler"),
+    };
+
+    exec(
+      `TRACKER_URL="${site.siteURL}" SITE_ID="${siteID}" node ${bundlerpath}`,
+      options,
+      (error, stdout, stderr) => {
+        if (error) {
+          console.error("Error executing command:", error);
+          next({
+            message: "Error regenerating site code",
+            error: true,
+            code: 500,
+            details: error.message,
+          });
+          return;
+        }
+        res.status(200).json({
+          message: "Site code regenerated successfully",
+          error: false,
+          data: { code: stdout.trim(), siteID },
+        });
+      }
+    );
+  } catch (error) {
+    next({
+      message: "Error regenerating site code",
+      error: true,
+      code: 500,
+      details: error.message,
+    });
+  }
+});
 router.get("/getsites", guard, async (req, res, next) => {
   const userID = res.locals.user.userID;
 
@@ -522,6 +586,45 @@ router.post("/addsite", guard, async (req, res, next) => {
     });
   }
 });
+router.delete("/deletesite", guard, async (req, res, next) => {
+  const { siteID } = req.body;
+  const userID = res.locals.user.userID;
+
+  if (!siteID) {
+    next({
+      message: "Site ID is required",
+      error: true,
+      code: 400,
+    });
+    return;
+  }
+
+  const deleteSiteResult = await DBService.siteDelete({
+    siteID,
+    userID,
+  });
+
+  if (!deleteSiteResult) {
+    next({
+      message: "Failed to delete site",
+      error: true,
+      code: 500,
+    });
+    return;
+  }
+
+  if (deleteSiteResult.error) {
+    next({
+      ...deleteSiteResult,
+    });
+  } else {
+    res.status(200).json({
+      message: "Site deleted successfully",
+      error: false,
+    });
+  }
+});
+
 export default router;
 
 async function guard(req, res, next) {

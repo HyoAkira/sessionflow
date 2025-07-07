@@ -430,7 +430,7 @@ export default class DBService {
     }
   }
 
-  static async siteGet(data: TSite) {
+  static async siteGet(data: Partial<TSite>) {
     try {
       const site = await Site.findOne({
         siteID: data.siteID,
@@ -458,7 +458,7 @@ export default class DBService {
       };
     }
   }
-  static async siteDelete(data: TSite) {
+  static async siteDelete(data: Partial<TSite>) {
     try {
       const site = await Site.findOne({
         siteID: data.siteID,

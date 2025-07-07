@@ -202,7 +202,7 @@ export default function () {
               <Link to="/dashboard/websiteadd/">Add website</Link>
             </li>
             <li>
-              <Link to="/dashboard/">System</Link>
+              <Link to="/dashboard/system/">System</Link>
             </li>
           </ul>
         </details>

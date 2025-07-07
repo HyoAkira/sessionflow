@@ -13,6 +13,7 @@ export default [
       route("visitreports", "pages/dashboard/visitreports.tsx"),
       route("detailedreports", "pages/dashboard/detailedreports.tsx"),
       route("settings", "pages/dashboard/settings.tsx"),
+      route("system", "pages/dashboard/system.tsx"),
     ],
   },
   route("/dashboard/websiteadd", "pages/dashboard/websiteadd.tsx"),
