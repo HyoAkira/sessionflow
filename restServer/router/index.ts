@@ -485,9 +485,8 @@ router.post("/regeneratewebsitecode", guard, async (req, res, next) => {
   }
 
   try {
-    // First, verify the site belongs to the user
     const siteResult = await DBService.siteGet({ siteID, userID });
-    if (siteResult.error) {
+    if (siteResult.error || !siteResult.data) {
       next({
         message: "Site not found or access denied",
         error: true,
