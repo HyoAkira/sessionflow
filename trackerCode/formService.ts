@@ -99,7 +99,7 @@ export default class FormService {
           input.addEventListener("input", (e) => {
             const target = e.target as HTMLInputElement;
             if (target.type === "checkbox") {
-              assignValue(target.checked);
+              assignValue(target.value);
             } else {
               assignValue(target.value);
             }

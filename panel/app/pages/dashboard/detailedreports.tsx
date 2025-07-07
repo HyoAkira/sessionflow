@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import userStore from "~/store";
 import {
   PieChart,
@@ -16,7 +16,8 @@ type SegmentData = {
   deviceType_tablet: number;
   focusLossCount: number;
   gender_NULL: number;
-  gender_true: number;
+  gender_female: number;
+  gender_male: number;
   max_price: number;
   min_price: number;
   pageDuration: number;
@@ -88,13 +89,12 @@ export default function DetailedReports() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch data based on selected report type
   useEffect(() => {
     if (!selectedSiteID || !token) return;
 
     setLoading(true);
     setError(null);
-    setData(null); // Clear previous data
+    setData(null);
 
     fetch(`http://localhost:3000/api/${reportType}`, {
       method: "POST",
@@ -120,7 +120,6 @@ export default function DetailedReports() {
       });
   }, [reportType, selectedSiteID, token]);
 
-  // Render segment data as a table
   const renderSegmentTable = (segmentData: SegmentData[]) => {
     if (segmentData.length === 0) {
       return (
@@ -151,6 +150,9 @@ export default function DetailedReports() {
               <th>Desktop %</th>
               <th>Tablet %</th>
               <th>Focus Loss</th>
+              <th>Male %</th>
+              <th>Female %</th>
+              <th>Null Gender%</th>
               <th>Price Range</th>
               <th>Page Duration</th>
               <th>Session Duration</th>
@@ -164,6 +166,9 @@ export default function DetailedReports() {
                 <td>{segment.deviceType_desktop.toFixed(2)}%</td>
                 <td>{segment.deviceType_tablet.toFixed(2)}%</td>
                 <td>{segment.focusLossCount.toFixed(2)}</td>
+                <td>{segment.gender_male.toFixed(2)}%</td>
+                <td>{segment.gender_female.toFixed(2)}%</td>
+                <td>{segment.gender_NULL.toFixed(2)}%</td>
                 <td>
                   ${segment.min_price.toFixed(2)} - $
                   {segment.max_price.toFixed(2)}
