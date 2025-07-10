@@ -161,20 +161,20 @@ export default function DetailedReports() {
           <tbody>
             {segmentData.map((segment, index) => (
               <tr key={index} className="hover">
-                <td className="font-semibold">Cluster {segment.segment}</td>
-                <td>{segment.clicks.toFixed(2)}</td>
-                <td>{segment.deviceType_desktop.toFixed(2)}%</td>
-                <td>{segment.deviceType_tablet.toFixed(2)}%</td>
-                <td>{segment.focusLossCount.toFixed(2)}</td>
-                <td>{segment.gender_male.toFixed(2)}%</td>
-                <td>{segment.gender_female.toFixed(2)}%</td>
-                <td>{segment.gender_NULL.toFixed(2)}%</td>
+                <td className="font-semibold">Cluster {segment?.segment ?? 'Unknown'}</td>
+                <td>{(segment?.clicks ?? 0).toFixed(2)}</td>
+                <td>{(segment?.deviceType_desktop ?? 0).toFixed(2)}%</td>
+                <td>{(segment?.deviceType_tablet ?? 0).toFixed(2)}%</td>
+                <td>{(segment?.focusLossCount ?? 0).toFixed(2)}</td>
+                <td>{(segment?.gender_male ?? 0).toFixed(2)}%</td>
+                <td>{(segment?.gender_female ?? 0).toFixed(2)}%</td>
+                <td>{(segment?.gender_NULL ?? 0).toFixed(2)}%</td>
                 <td>
-                  ${segment.min_price.toFixed(2)} - $
-                  {segment.max_price.toFixed(2)}
+                  ${(segment?.min_price ?? 0).toFixed(2)} - $
+                  {(segment?.max_price ?? 0).toFixed(2)}
                 </td>
-                <td>{formatDuration(segment.pageDuration)}</td>
-                <td>{formatDuration(segment.sessionDuration)}</td>
+                <td>{formatDuration(segment?.pageDuration ?? 0)}</td>
+                <td>{formatDuration(segment?.sessionDuration ?? 0)}</td>
               </tr>
             ))}
           </tbody>

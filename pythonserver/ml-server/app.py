@@ -91,7 +91,7 @@ async def modelReload():
         numerical_features = df.select_dtypes(include=['float64', 'int64']).columns
 
         categorical_features = df.select_dtypes(include=['object']).columns
-
+    
         ss = StandardScaler()
         ohe = OneHotEncoder(handle_unknown='ignore')
         preprocessor = ColumnTransformer(

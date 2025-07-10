@@ -141,11 +141,12 @@ export default function () {
 
     switch (dateRange) {
       case "daily":
-        dateFormat = (date) =>
-          new Date(date).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+        // Format by hour for daily view
+        dateFormat = (date) => {
+          const d = new Date(date);
+          // Format as "HH:00" to show hourly intervals
+          return d.getHours().toString().padStart(2, "0") + ":00";
+        };
         break;
       case "weekly":
       case "custom":
@@ -161,6 +162,15 @@ export default function () {
         dateFormat = (date) => new Date(date).toLocaleDateString();
     }
 
+    // For daily view, create all hours of the day first
+    if (dateRange === "daily") {
+      // Initialize with all 24 hours
+      for (let i = 0; i < 24; i++) {
+        const hour = i.toString().padStart(2, "0") + ":00";
+        groupedData[hour] = 0;
+      }
+    }
+
     sessionData.forEach((session) => {
       const dateKey = dateFormat(session.createdAt);
       if (!groupedData[dateKey]) {
@@ -169,6 +179,21 @@ export default function () {
         groupedData[dateKey]++;
       }
     });
+
+    // For daily view, ensure data is sorted by hour
+    if (dateRange === "daily") {
+      return Object.keys(groupedData)
+        .sort((a, b) => {
+          // Sort by hour
+          const hourA = parseInt(a.split(":")[0]);
+          const hourB = parseInt(b.split(":")[0]);
+          return hourA - hourB;
+        })
+        .map((date) => ({
+          date,
+          visits: groupedData[date],
+        }));
+    }
 
     return Object.keys(groupedData).map((date) => ({
       date,
@@ -466,11 +491,6 @@ export default function () {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
-        <div className="flex justify-end mt-2">
-          <div className="text-sm text-base-content opacity-70 italic">
-            Data refreshes when date range changes
-          </div>
         </div>
       </div>
     </div>
