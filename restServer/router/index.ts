@@ -4,7 +4,6 @@ import DBService from "../services/db";
 import SocketService from "../services/socket";
 import { TUser } from "../schemas/user.schema";
 import jwt from "jsonwebtoken";
-import config from "../config.json";
 import { exec } from "child_process";
 import { resolve } from "path";
 import { ml_server } from "../config.json";
@@ -357,7 +356,7 @@ router.post("/userlogin", async (req, res, next) => {
     } else {
       const token = jwt.sign(
         { userID: userLoginResult.data!.userID },
-        process.env.JWT_SECRET || config.secret || "secret",
+        process.env.JWT_SECRET || "secret",
         { expiresIn: "7d" }
       );
       res.status(200).json({
@@ -382,7 +381,7 @@ router.get("/auth", async (req, res, next) => {
   try {
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || config.secret || "secret"
+      process.env.JWT_SECRET || "secret"
     );
     res.status(200).json({
       message: "Token is valid",
@@ -641,7 +640,7 @@ async function guard(req, res, next) {
   try {
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || config.secret || "secret"
+      process.env.JWT_SECRET || "secret"
     );
 
     res.locals.user = decoded;
